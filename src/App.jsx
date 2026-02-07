@@ -59,10 +59,24 @@ const formatDate = (value, locale) => {
   }).format(parsed);
 };
 
+const getAgeYears = (birthDate, endDate) => {
+  if (!birthDate) return null;
+  const start = new Date(birthDate);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = endDate ? new Date(endDate) : new Date();
+  if (Number.isNaN(end.getTime())) return null;
+  let years = end.getFullYear() - start.getFullYear();
+  const monthDiff = end.getMonth() - start.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && end.getDate() < start.getDate())) {
+    years -= 1;
+  }
+  return years >= 0 ? years : null;
+};
+
 const translations = {
   "en-US": {
     title: "Family Tree",
-    subtitle: "CSV-powered genealogy map",
+    subtitle: "Your private genealogy map",
     searchPlaceholder: "Search a person",
     settings: "Settings",
     loadCsv: "Load CSV",
@@ -84,10 +98,11 @@ const translations = {
     warningNoReciprocal: "is not reciprocated",
     warningMissingParent: "has a child with a missing parent",
     infoTitle: "About",
+    yearsLabel: "years",
   },
   "es-ES": {
     title: "Árbol familiar",
-    subtitle: "Mapa genealógico desde CSV",
+    subtitle: "Tu mapa genealógico privado",
     searchPlaceholder: "Buscar una persona",
     settings: "Configuración",
     loadCsv: "Cargar CSV",
@@ -109,10 +124,11 @@ const translations = {
     warningNoReciprocal: "no es recíproco",
     warningMissingParent: "tiene un hijo con un padre/madre faltante",
     infoTitle: "Sobre",
+    yearsLabel: "años",
   },
   "ca-ES": {
     title: "Arbre familiar",
-    subtitle: "Mapa genealògic des de CSV",
+    subtitle: "El teu mapa genealògic privat",
     searchPlaceholder: "Cerca una persona",
     settings: "Configuració",
     loadCsv: "Carrega CSV",
@@ -134,10 +150,11 @@ const translations = {
     warningNoReciprocal: "no és recíproc",
     warningMissingParent: "té un fill amb pare/mare absent",
     infoTitle: "Sobre",
+    yearsLabel: "anys",
   },
   "pt-BR": {
     title: "Árvore genealógica",
-    subtitle: "Mapa genealógico a partir de CSV",
+    subtitle: "Seu mapa genealógico privado",
     searchPlaceholder: "Buscar uma pessoa",
     settings: "Configurações",
     loadCsv: "Carregar CSV",
@@ -159,6 +176,7 @@ const translations = {
     warningNoReciprocal: "não é recíproco",
     warningMissingParent: "tem filho com pai/mãe ausente",
     infoTitle: "Sobre",
+    yearsLabel: "anos",
   },
 };
 
@@ -641,6 +659,7 @@ const App = () => {
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const fileInputRef = useRef(null);
   const searchRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   const parseCsv = (text) => {
     const parsed = Papa.parse(text, {
@@ -667,10 +686,22 @@ const App = () => {
         setSelectedInfo(null);
         setFitViewKey((value) => value + 1);
       }
+      if (event.key === "/") {
+        if (document.activeElement !== searchInputRef.current) {
+          event.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+      if (event.key === "Enter" && selectedId && !selectedInfo) {
+        const person = people.find((entry) => entry.id === selectedId);
+        if (person?.info) {
+          setSelectedInfo(person);
+        }
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [selectedId, selectedInfo, people]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -758,6 +789,11 @@ const App = () => {
       .filter(Boolean);
   }, [selectedInfo]);
 
+  const selectedAge = useMemo(() => {
+    if (!selectedInfo?.birth_day) return null;
+    return getAgeYears(selectedInfo.birth_day, selectedInfo.death_day);
+  }, [selectedInfo]);
+
   const { nodes, edges } = useMemo(
     () =>
       buildGraph(
@@ -786,12 +822,16 @@ const App = () => {
   return (
     <div className={`app-shell ${theme}`}>
       <div className="toolbar">
-        <div>
-          <div className="title">{copy.title}</div>
-          <div className="subtitle">{copy.subtitle}</div>
+        <div className="title-row">
+          <img className="title-icon" src="/favicon.png" alt="" />
+          <div className="title-stack">
+            <div className="title">{copy.title}</div>
+            <div className="subtitle">{copy.subtitle}</div>
+          </div>
         </div>
         <div className="search" ref={searchRef}>
           <input
+            ref={searchInputRef}
             type="text"
             placeholder={copy.searchPlaceholder}
             value={searchTerm}
@@ -993,12 +1033,19 @@ const App = () => {
         <div className="modal-backdrop" role="presentation">
           <div className="modal info-modal">
             <div className="modal-header">
-              <div>
+              <div className="info-header">
                 <div className="modal-title">
                   {copy.infoTitle} {selectedInfo.name}
                 </div>
-                <div className="modal-subtitle">
-                  {formatDate(selectedInfo.birth_day, locale) || copy.unknown}
+                <div className="info-meta">
+                  <span className="info-line">
+                    {formatDate(selectedInfo.birth_day, locale) || copy.unknown}
+                    {selectedInfo.death_day
+                      ? ` - ${formatDate(selectedInfo.death_day, locale)}`
+                      : ""}
+                    {selectedAge !== null && ` (${selectedAge} ${copy.yearsLabel})`}
+                    {` · ${selectedInfo.birth_place || copy.unknown}`}
+                  </span>
                 </div>
               </div>
             </div>
