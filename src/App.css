@@ -64,6 +64,10 @@
   font-size: 13px;
 }
 
+.search-results button.active {
+  background: #dbe6ff;
+}
+
 .toolbar-actions {
   display: flex;
   gap: 10px;
@@ -179,6 +183,10 @@
   color: #e2e8f0;
 }
 
+.app-shell.dark .search-results button.active {
+  background: #334155;
+}
+
 .app-shell.dark .settings {
   background: #334155;
 }
@@ -220,12 +228,26 @@
   background: #2563eb;
 }
 
+.app-shell.dark .modal-body .checkbox small {
+  color: #94a3b8;
+}
+
 .app-shell.dark .person-card.warning {
   box-shadow: inset 0 0 0 2px #facc15;
 }
 
+.app-shell.dark .person-card.match {
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow: inset 0 0 0 2px rgba(96, 165, 250, 0.35);
+}
+
 .app-shell.dark .person-warning {
   color: #fde047;
+}
+
+.app-shell.dark .person-info {
+  background: #1e293b;
+  color: #93c5fd;
 }
 
 .person-card {
@@ -255,12 +277,31 @@
   box-shadow: inset 0 0 0 2px #facc15;
 }
 
+.person-card.match {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
 .person-warning {
   position: absolute;
   top: 8px;
   right: 10px;
   color: #facc15;
   font-size: 14px;
+}
+
+.person-info {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  border: none;
+  background: #e0e7ff;
+  color: #1d4ed8;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
 
@@ -351,6 +392,23 @@
   gap: 12px;
 }
 
+.modal-body .checkbox {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-body .checkbox span {
+  font-weight: 600;
+}
+
+.modal-body .checkbox small {
+  display: block;
+  font-weight: 400;
+  color: #6a7695;
+}
+
 .modal-title {
   font-size: 18px;
   font-weight: 700;
@@ -381,6 +439,7 @@
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .modal-save {
@@ -391,6 +450,36 @@
   color: white;
   cursor: pointer;
   font-weight: 600;
+}
+
+.info-modal {
+  max-width: 640px;
+}
+
+.info-body {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  color: #1d2846;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.info-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #c7d2fe, #e0e7ff);
+  background-size: cover;
+  background-position: center;
+}
+
+.info-avatar.deceased {
+  filter: grayscale(1) contrast(0.9);
+}
+
+.app-shell.dark .info-body {
+  color: #e2e8f0;
 }
 
 .field {

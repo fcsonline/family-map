@@ -15,6 +15,7 @@ import {
   FaExclamationTriangle,
   FaFileCsv,
   FaHeart,
+  FaInfoCircle,
   FaMapMarkerAlt,
   FaPrint,
   FaRegHeart,
@@ -44,6 +45,7 @@ const normalizePerson = (row) => ({
   mother: normalizeId(row.mother),
   married_to: normalizeId(row.married_to),
   avatar_url: row.avatar_url?.trim() || "",
+  info: row.info?.trim() || "",
 });
 
 const formatDate = (value, locale) => {
@@ -76,9 +78,12 @@ const translations = {
     alive: "Alive",
     unknown: "Unknown",
     warningsTitle: "Data warnings",
+    warningsLabel: "Show warnings",
+    warningsDescription: "Highlight inconsistent relationships and show alerts.",
     warningMissingPartner: "has a missing partner",
     warningNoReciprocal: "is not reciprocated",
     warningMissingParent: "has a child with a missing parent",
+    infoTitle: "About",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -98,9 +103,12 @@ const translations = {
     alive: "Vivo",
     unknown: "Desconocido",
     warningsTitle: "Advertencias de datos",
+    warningsLabel: "Mostrar advertencias",
+    warningsDescription: "Resalta relaciones inconsistentes y muestra alertas.",
     warningMissingPartner: "tiene una pareja faltante",
     warningNoReciprocal: "no es recíproco",
     warningMissingParent: "tiene un hijo con un padre/madre faltante",
+    infoTitle: "Sobre",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -120,9 +128,12 @@ const translations = {
     alive: "Viu",
     unknown: "Desconegut",
     warningsTitle: "Avisos de dades",
+    warningsLabel: "Mostra avisos",
+    warningsDescription: "Ressalta relacions incoherents i mostra alertes.",
     warningMissingPartner: "té una parella absent",
     warningNoReciprocal: "no és recíproc",
     warningMissingParent: "té un fill amb pare/mare absent",
+    infoTitle: "Sobre",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -142,9 +153,12 @@ const translations = {
     alive: "Vivo",
     unknown: "Desconhecido",
     warningsTitle: "Avisos de dados",
+    warningsLabel: "Mostrar avisos",
+    warningsDescription: "Destaque relações inconsistentes e mostre alertas.",
     warningMissingPartner: "tem parceiro ausente",
     warningNoReciprocal: "não é recíproco",
     warningMissingParent: "tem filho com pai/mãe ausente",
+    infoTitle: "Sobre",
   },
 };
 
@@ -296,7 +310,16 @@ const buildWarnings = (people, locale) => {
   return { warnings, warningIds, warningById };
 };
 
-const buildGraph = (people, selectedId, locale, warningIds, warningById) => {
+const buildGraph = (
+  people,
+  selectedId,
+  locale,
+  warningIds,
+  warningById,
+  matchIds,
+  onInfo,
+  showWarnings,
+) => {
   const { peopleById, coupleById, marriageByPerson, childrenByCouple } =
     buildModel(people);
   const generationById = computeGenerations(peopleById);
@@ -375,8 +398,12 @@ const buildGraph = (people, selectedId, locale, warningIds, warningById) => {
             isSelected,
             isDimmed,
             locale,
-            hasWarning: warningIds?.has(partnerId),
-            warningMessage: warningById?.get(partnerId)?.join(" ") || "",
+            hasWarning: showWarnings && warningIds?.has(partnerId),
+            warningMessage: showWarnings
+              ? warningById?.get(partnerId)?.join(" ") || ""
+              : "",
+            isMatch: matchIds?.has(partnerId),
+            onInfo,
           },
         };
         nodes.push(node);
@@ -436,7 +463,16 @@ const buildGraph = (people, selectedId, locale, warningIds, warningById) => {
 };
 
 const PersonNode = ({ data }) => {
-  const { person, isSelected, isDimmed, locale, hasWarning, warningMessage } = data;
+  const {
+    person,
+    isSelected,
+    isDimmed,
+    locale,
+    hasWarning,
+    warningMessage,
+    isMatch,
+    onInfo,
+  } = data;
   const copy = getTranslations(locale);
   const isDeceased = Boolean(person.death_day);
   const birthLabel = formatDate(person.birth_day, locale) || copy.unknown;
@@ -448,7 +484,7 @@ const PersonNode = ({ data }) => {
     <div
       className={`person-card ${isSelected ? "selected" : ""} ${
         isDimmed ? "dimmed" : ""
-      } ${hasWarning ? "warning" : ""}`}
+      } ${hasWarning ? "warning" : ""} ${isMatch ? "match" : ""}`}
     >
       <Handle type="target" position={Position.Top} isConnectable={false} />
       <Handle
@@ -475,6 +511,19 @@ const PersonNode = ({ data }) => {
         <div className="person-warning" title={warningMessage}>
           <FaExclamationTriangle />
         </div>
+      )}
+      {isSelected && person.info && (
+        <button
+          className="person-info"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onInfo?.(person);
+          }}
+          title={copy.infoTitle}
+        >
+          <FaInfoCircle />
+        </button>
       )}
       <div className="person-body">
         <div className="person-name">{person.name}</div>
@@ -586,7 +635,10 @@ const App = () => {
   const [draftLocale, setDraftLocale] = useState("en-US");
   const [draftTheme, setDraftTheme] = useState("light");
   const [showWarnings, setShowWarnings] = useState(true);
+  const [draftShowWarnings, setDraftShowWarnings] = useState(true);
   const [fitViewKey, setFitViewKey] = useState(0);
+  const [selectedInfo, setSelectedInfo] = useState(null);
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const fileInputRef = useRef(null);
   const searchRef = useRef(null);
 
@@ -612,6 +664,7 @@ const App = () => {
     const handleKey = (event) => {
       if (event.key === "Escape") {
         setSelectedId("");
+        setSelectedInfo(null);
         setFitViewKey((value) => value + 1);
       }
     };
@@ -626,11 +679,15 @@ const App = () => {
   useEffect(() => {
     const storedLocale = localStorage.getItem("geo-family-locale");
     const storedTheme = localStorage.getItem("geo-family-theme");
+    const storedWarnings = localStorage.getItem("geo-family-show-warnings");
     if (storedLocale && translations[storedLocale]) {
       setLocale(storedLocale);
     }
     if (storedTheme === "light" || storedTheme === "dark") {
       setTheme(storedTheme);
+    }
+    if (storedWarnings === "false") {
+      setShowWarnings(false);
     }
   }, []);
 
@@ -638,8 +695,9 @@ const App = () => {
     if (isSettingsOpen) {
       setDraftLocale(locale);
       setDraftTheme(theme);
+      setDraftShowWarnings(showWarnings);
     }
-  }, [isSettingsOpen, locale, theme]);
+  }, [isSettingsOpen, locale, theme, showWarnings]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -660,6 +718,7 @@ const App = () => {
       const text = typeof reader.result === "string" ? reader.result : "";
       setPeople(parseCsv(text));
       setSelectedId("");
+      setSelectedInfo(null);
       setSearchTerm("");
       setIsSearchOpen(false);
     };
@@ -672,22 +731,57 @@ const App = () => {
     [people, locale],
   );
 
-  const { nodes, edges } = useMemo(
-    () => buildGraph(people, selectedId, locale, warningIds, warningById),
-    [people, selectedId, locale, warningIds, warningById],
-  );
-
-  const matches = useMemo(() => {
+  const filteredMatches = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return [];
-    return people
-      .filter((person) => person.name.toLowerCase().includes(term))
-      .slice(0, 8);
+    return people.filter((person) => person.name.toLowerCase().includes(term));
   }, [people, searchTerm]);
+
+  const matches = useMemo(() => filteredMatches.slice(0, 8), [filteredMatches]);
+
+  const matchIds = useMemo(
+    () => new Set(filteredMatches.map((person) => person.id)),
+    [filteredMatches],
+  );
+
+  useEffect(() => {
+    if (!matches.length) {
+      setActiveMatchIndex(0);
+    }
+  }, [matches]);
+
+  const infoParagraphs = useMemo(() => {
+    if (!selectedInfo?.info) return [];
+    return selectedInfo.info
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  }, [selectedInfo]);
+
+  const { nodes, edges } = useMemo(
+    () =>
+      buildGraph(
+        people,
+        selectedId,
+        locale,
+        warningIds,
+        warningById,
+        matchIds,
+        (person) => setSelectedInfo(person),
+        showWarnings,
+      ),
+    [people, selectedId, locale, warningIds, warningById, matchIds, showWarnings],
+  );
 
   useEffect(() => {
     setShowWarnings(true);
+    setDraftShowWarnings(true);
   }, [people, locale]);
+
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    setSelectedInfo(null);
+  };
 
   return (
     <div className={`app-shell ${theme}`}>
@@ -704,19 +798,50 @@ const App = () => {
             onChange={(event) => {
               setSearchTerm(event.target.value);
               setIsSearchOpen(true);
+              setActiveMatchIndex(0);
             }}
             onFocus={() => setIsSearchOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setSearchTerm("");
+                setIsSearchOpen(false);
+                setActiveMatchIndex(0);
+                return;
+              }
+              if (!matches.length) return;
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setActiveMatchIndex((index) => Math.min(index + 1, matches.length - 1));
+              }
+              if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setActiveMatchIndex((index) => Math.max(index - 1, 0));
+              }
+              if (event.key === "Enter") {
+                event.preventDefault();
+                const chosen = matches[activeMatchIndex] || matches[0];
+                if (chosen) {
+                  handleSelect(chosen.id);
+                  setSearchTerm(chosen.name);
+                  setIsSearchOpen(false);
+                  setActiveMatchIndex(0);
+                }
+              }
+            }}
           />
           {isSearchOpen && matches.length > 0 && (
             <div className="search-results">
-              {matches.map((person) => (
+              {matches.map((person, index) => (
                 <button
                   key={person.id}
                   type="button"
+                  className={index === activeMatchIndex ? "active" : ""}
                   onMouseDown={() => {
-                    setSelectedId(person.id);
+                    handleSelect(person.id);
                     setSearchTerm(person.name);
                     setIsSearchOpen(false);
+                    setActiveMatchIndex(0);
                   }}
                 >
                   {person.name}
@@ -737,7 +862,10 @@ const App = () => {
             <button
               className="reset"
               type="button"
-              onClick={() => setSelectedId("")}
+              onClick={() => {
+                setSelectedId("");
+                setSelectedInfo(null);
+              }}
             >
               {copy.clearHighlight}
             </button>
@@ -780,7 +908,7 @@ const App = () => {
           <FlowCanvas
             nodes={nodes}
             edges={edges}
-            onSelect={setSelectedId}
+            onSelect={handleSelect}
             selectedId={selectedId}
             onPrint={() => window.print()}
             fitViewKey={fitViewKey}
@@ -795,13 +923,6 @@ const App = () => {
                 <div className="modal-title">{copy.modalTitle}</div>
                 <div className="modal-subtitle">{copy.modalSubtitle}</div>
               </div>
-              <button
-                className="modal-close"
-                type="button"
-                onClick={() => setIsSettingsOpen(false)}
-              >
-                {copy.close}
-              </button>
             </div>
             <div className="modal-body">
               <label className="field">
@@ -826,20 +947,83 @@ const App = () => {
                   <option value="dark">{copy.themeDark}</option>
                 </select>
               </label>
+              <label className="field checkbox">
+                <div>
+                  <span>{copy.warningsLabel}</span>
+                  <small>{copy.warningsDescription}</small>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={draftShowWarnings}
+                  onChange={(event) => setDraftShowWarnings(event.target.checked)}
+                />
+              </label>
             </div>
             <div className="modal-footer">
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => setIsSettingsOpen(false)}
+              >
+                {copy.close}
+              </button>
               <button
                 className="modal-save"
                 type="button"
                 onClick={() => {
                   setLocale(draftLocale);
                   setTheme(draftTheme);
+                  setShowWarnings(draftShowWarnings);
                   localStorage.setItem("geo-family-locale", draftLocale);
                   localStorage.setItem("geo-family-theme", draftTheme);
+                  localStorage.setItem(
+                    "geo-family-show-warnings",
+                    draftShowWarnings ? "true" : "false",
+                  );
                   setIsSettingsOpen(false);
                 }}
               >
                 {copy.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedInfo && (
+        <div className="modal-backdrop" role="presentation">
+          <div className="modal info-modal">
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">
+                  {copy.infoTitle} {selectedInfo.name}
+                </div>
+                <div className="modal-subtitle">
+                  {formatDate(selectedInfo.birth_day, locale) || copy.unknown}
+                </div>
+              </div>
+            </div>
+            <div className="modal-body info-body">
+              <div
+                className={`info-avatar ${
+                  selectedInfo.death_day ? "deceased" : ""
+                }`}
+                style={
+                  selectedInfo.avatar_url
+                    ? { backgroundImage: `url(${selectedInfo.avatar_url})` }
+                    : undefined
+                }
+              />
+              {infoParagraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => setSelectedInfo(null)}
+              >
+                {copy.close}
               </button>
             </div>
           </div>
