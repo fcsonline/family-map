@@ -1013,9 +1013,11 @@ const App = () => {
                     : undefined
                 }
               />
-              {infoParagraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              <div className="info-text">
+                {infoParagraphs.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
             </div>
             <div className="modal-footer">
               <button
