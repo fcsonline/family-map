@@ -81,6 +81,43 @@ const getYearFromDate = (value) => {
   return parsed.getFullYear();
 };
 
+const focusableSelectors =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+const useModalFocusTrap = (isOpen, modalRef) => {
+  const lastFocusedRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    lastFocusedRef.current = document.activeElement;
+    const focusable = modalRef.current?.querySelectorAll(focusableSelectors);
+    focusable?.[0]?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key !== "Tab") return;
+      const elements = modalRef.current?.querySelectorAll(focusableSelectors);
+      if (!elements?.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      lastFocusedRef.current?.focus();
+    };
+  }, [isOpen, modalRef]);
+};
+
 const isPersonInYear = (person, year) => {
   const birthYear = getYearFromDate(person.birth_day);
   const deathYear = getYearFromDate(person.death_day);
@@ -108,8 +145,6 @@ const translations = {
     alive: "Alive",
     unknown: "Unknown",
     warningsTitle: "Data warnings",
-    warningsLabel: "Show warnings",
-    warningsDescription: "Highlight inconsistent relationships and show alerts.",
     warningsShow: "Show warnings",
     warningsHide: "Hide warnings",
     warningMissingPartner: "has a missing partner",
@@ -117,9 +152,10 @@ const translations = {
     warningMissingParent: "has a child with a missing parent",
     infoTitle: "About",
     yearsLabel: "years",
+    print: "Print",
     timeline: "Time travel",
     timelineTitle: "Time travel",
-    timelineSubtitle: "Animate the tree by year",
+    timelineSubtitle: "Step through years to see the tree change over time",
     timelineStart: "Start year",
     timelineEnd: "End year",
     timelinePlay: "Start",
@@ -144,8 +180,6 @@ const translations = {
     alive: "Vivo",
     unknown: "Desconocido",
     warningsTitle: "Advertencias de datos",
-    warningsLabel: "Mostrar advertencias",
-    warningsDescription: "Resalta relaciones inconsistentes y muestra alertas.",
     warningsShow: "Mostrar advertencias",
     warningsHide: "Ocultar advertencias",
     warningMissingPartner: "tiene una pareja faltante",
@@ -153,9 +187,10 @@ const translations = {
     warningMissingParent: "tiene un hijo con un padre/madre faltante",
     infoTitle: "Sobre",
     yearsLabel: "años",
-    timeline: "Time travel",
-    timelineTitle: "Time travel",
-    timelineSubtitle: "Anima el árbol por año",
+    print: "Imprimir",
+    timeline: "Viaje en el tiempo",
+    timelineTitle: "Viaje en el tiempo",
+    timelineSubtitle: "Recorre los años para ver cómo cambia el árbol",
     timelineStart: "Año de inicio",
     timelineEnd: "Año de fin",
     timelinePlay: "Iniciar",
@@ -180,8 +215,6 @@ const translations = {
     alive: "Viu",
     unknown: "Desconegut",
     warningsTitle: "Avisos de dades",
-    warningsLabel: "Mostra avisos",
-    warningsDescription: "Ressalta relacions incoherents i mostra alertes.",
     warningsShow: "Mostra avisos",
     warningsHide: "Amaga avisos",
     warningMissingPartner: "té una parella absent",
@@ -189,9 +222,10 @@ const translations = {
     warningMissingParent: "té un fill amb pare/mare absent",
     infoTitle: "Sobre",
     yearsLabel: "anys",
-    timeline: "Time travel",
-    timelineTitle: "Time travel",
-    timelineSubtitle: "Anima l'arbre per any",
+    print: "Imprimeix",
+    timeline: "Viatge en el temps",
+    timelineTitle: "Viatge en el temps",
+    timelineSubtitle: "Recorre els anys per veure com canvia l'arbre",
     timelineStart: "Any d'inici",
     timelineEnd: "Any de fi",
     timelinePlay: "Inicia",
@@ -216,8 +250,6 @@ const translations = {
     alive: "Vivo",
     unknown: "Desconhecido",
     warningsTitle: "Avisos de dados",
-    warningsLabel: "Mostrar avisos",
-    warningsDescription: "Destaque relações inconsistentes e mostre alertas.",
     warningsShow: "Mostrar avisos",
     warningsHide: "Ocultar avisos",
     warningMissingPartner: "tem parceiro ausente",
@@ -225,9 +257,10 @@ const translations = {
     warningMissingParent: "tem filho com pai/mãe ausente",
     infoTitle: "Sobre",
     yearsLabel: "anos",
-    timeline: "Time travel",
-    timelineTitle: "Time travel",
-    timelineSubtitle: "Anime a árvore por ano",
+    print: "Imprimir",
+    timeline: "Viagem no tempo",
+    timelineTitle: "Viagem no tempo",
+    timelineSubtitle: "Percorra os anos para ver como a árvore muda",
     timelineStart: "Ano inicial",
     timelineEnd: "Ano final",
     timelinePlay: "Iniciar",
@@ -602,6 +635,7 @@ const PersonNode = ({ data }) => {
             onInfo?.(person);
           }}
           title={copy.infoTitle}
+          aria-label={copy.infoTitle}
         >
           <FaInfoCircle />
         </button>
@@ -660,6 +694,7 @@ const FlowCanvas = ({
   onToggleWarnings,
   showWarnings,
   warningsToggleLabel,
+  printLabel,
 }) => {
   const { fitView, setCenter } = useReactFlow();
 
@@ -710,11 +745,13 @@ const FlowCanvas = ({
         <ControlButton
           onClick={onToggleWarnings}
           title={warningsToggleLabel}
+          aria-label={warningsToggleLabel}
+          aria-pressed={showWarnings}
           className={`warning-toggle ${showWarnings ? "is-on" : "is-off"}`}
         >
           <FaExclamationTriangle />
         </ControlButton>
-        <ControlButton onClick={handlePrint} title="Print">
+        <ControlButton onClick={handlePrint} title={printLabel} aria-label={printLabel}>
           <FaPrint />
         </ControlButton>
       </Controls>
@@ -733,7 +770,6 @@ const App = () => {
   const [draftLocale, setDraftLocale] = useState("en-US");
   const [draftTheme, setDraftTheme] = useState("light");
   const [showWarnings, setShowWarnings] = useState(true);
-  const [draftShowWarnings, setDraftShowWarnings] = useState(true);
   const [fitViewKey, setFitViewKey] = useState(0);
   const [selectedInfo, setSelectedInfo] = useState(null);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
@@ -746,6 +782,13 @@ const App = () => {
   const fileInputRef = useRef(null);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
+  const settingsModalRef = useRef(null);
+  const timelineModalRef = useRef(null);
+  const infoModalRef = useRef(null);
+
+  useModalFocusTrap(isSettingsOpen, settingsModalRef);
+  useModalFocusTrap(isTimelineOpen, timelineModalRef);
+  useModalFocusTrap(Boolean(selectedInfo), infoModalRef);
 
   const parseCsv = (text) => {
     const parsed = Papa.parse(text, {
@@ -768,6 +811,12 @@ const App = () => {
   useEffect(() => {
     const handleKey = (event) => {
       if (event.key === "Escape") {
+        if (isSettingsOpen || isTimelineOpen || selectedInfo) {
+          setIsSettingsOpen(false);
+          setIsTimelineOpen(false);
+          setSelectedInfo(null);
+          return;
+        }
         setSelectedId("");
         setSelectedInfo(null);
         setFitViewKey((value) => value + 1);
@@ -787,7 +836,7 @@ const App = () => {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedId, selectedInfo, people]);
+  }, [selectedId, selectedInfo, people, isSettingsOpen, isTimelineOpen]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -812,9 +861,8 @@ const App = () => {
     if (isSettingsOpen) {
       setDraftLocale(locale);
       setDraftTheme(theme);
-      setDraftShowWarnings(showWarnings);
     }
-  }, [isSettingsOpen, locale, theme, showWarnings]);
+  }, [isSettingsOpen, locale, theme]);
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -952,7 +1000,6 @@ const App = () => {
 
   useEffect(() => {
     setShowWarnings(true);
-    setDraftShowWarnings(true);
   }, [people, locale]);
 
   const handleStopTimeline = () => {
@@ -1131,20 +1178,29 @@ const App = () => {
             onToggleWarnings={handleToggleWarnings}
             showWarnings={showWarnings}
             warningsToggleLabel={warningsToggleLabel}
+            printLabel={copy.print}
           />
         </ReactFlowProvider>
       </div>
       {timelineYear !== null && (
-        <div className="timeline-toast" role="status">
+        <div className="timeline-toast" role="status" aria-live="polite" aria-atomic="true">
           {timelineYear}
         </div>
       )}
       {isSettingsOpen && (
         <div className="modal-backdrop" role="presentation">
-          <div className="modal">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-modal-title"
+            ref={settingsModalRef}
+          >
             <div className="modal-header">
               <div>
-                <div className="modal-title">{copy.modalTitle}</div>
+                <div className="modal-title" id="settings-modal-title">
+                  {copy.modalTitle}
+                </div>
                 <div className="modal-subtitle">{copy.modalSubtitle}</div>
               </div>
             </div>
@@ -1171,17 +1227,6 @@ const App = () => {
                   <option value="dark">{copy.themeDark}</option>
                 </select>
               </label>
-              <label className="field checkbox">
-                <div>
-                  <span>{copy.warningsLabel}</span>
-                  <small>{copy.warningsDescription}</small>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={draftShowWarnings}
-                  onChange={(event) => setDraftShowWarnings(event.target.checked)}
-                />
-              </label>
             </div>
             <div className="modal-footer">
               <button
@@ -1197,13 +1242,8 @@ const App = () => {
                 onClick={() => {
                   setLocale(draftLocale);
                   setTheme(draftTheme);
-                  setShowWarnings(draftShowWarnings);
                   localStorage.setItem("geo-family-locale", draftLocale);
                   localStorage.setItem("geo-family-theme", draftTheme);
-                  localStorage.setItem(
-                    "geo-family-show-warnings",
-                    draftShowWarnings ? "true" : "false",
-                  );
                   setIsSettingsOpen(false);
                 }}
               >
@@ -1215,10 +1255,18 @@ const App = () => {
       )}
       {isTimelineOpen && (
         <div className="modal-backdrop" role="presentation">
-          <div className="modal">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="timeline-modal-title"
+            ref={timelineModalRef}
+          >
             <div className="modal-header">
               <div>
-                <div className="modal-title">{copy.timelineTitle}</div>
+                <div className="modal-title" id="timeline-modal-title">
+                  {copy.timelineTitle}
+                </div>
                 <div className="modal-subtitle">{copy.timelineSubtitle}</div>
               </div>
             </div>
@@ -1275,10 +1323,16 @@ const App = () => {
       )}
       {selectedInfo && (
         <div className="modal-backdrop" role="presentation">
-          <div className="modal info-modal">
+          <div
+            className="modal info-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="info-modal-title"
+            ref={infoModalRef}
+          >
             <div className="modal-header">
               <div className="info-header">
-                <div className="modal-title">
+                <div className="modal-title" id="info-modal-title">
                   {copy.infoTitle} {selectedInfo.name}
                 </div>
                 <div className="info-meta">

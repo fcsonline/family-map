@@ -42,7 +42,7 @@
 
 .subtitle {
   font-size: 13px;
-  color: #6a7695;
+  color: #475569;
 }
 
 .search {
@@ -71,6 +71,11 @@
   height: 16px;
 }
 
+:where(button, input, select, textarea, .react-flow__controls-button):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
 .react-flow__controls-button.warning-toggle {
   background: #fbbf24;
   color: #92400e;
@@ -87,6 +92,10 @@
   border-radius: 10px;
   border: 1px solid #d1d8ea;
   background: #f7f9ff;
+}
+
+.search input::placeholder {
+  color: #64748b;
 }
 
 .search-results {
@@ -207,8 +216,9 @@
 
 .app-shell.dark .subtitle,
 .app-shell.dark .person-meta,
-.app-shell.dark .modal-subtitle {
-  color: #94a3b8;
+.app-shell.dark .modal-subtitle,
+.app-shell.dark .info-meta {
+  color: #cbd5f5;
 }
 
 .app-shell.dark .flow-wrapper {
@@ -224,6 +234,10 @@
   background: #1f2937;
   border-color: #334155;
   color: #e2e8f0;
+}
+
+.app-shell.dark .search input::placeholder {
+  color: #cbd5f5;
 }
 
 .app-shell.dark .search-results {
@@ -273,7 +287,9 @@
   color: #e2e8f0;
 }
 
-.app-shell.dark .field select {
+.app-shell.dark .field select,
+.app-shell.dark .field input[type="number"],
+.app-shell.dark .field input[type="date"] {
   background: #1f2937;
   color: #e2e8f0;
   border-color: #334155;
@@ -300,9 +316,6 @@
   background: #2563eb;
 }
 
-.app-shell.dark .modal-body .checkbox small {
-  color: #94a3b8;
-}
 
 .app-shell.dark .person-card.warning {
   box-shadow: inset 0 0 0 2px #facc15;
@@ -417,7 +430,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #6a7695;
+  color: #475569;
 }
 
 .marriage-node {
@@ -473,22 +486,6 @@
   gap: 12px;
 }
 
-.modal-body .checkbox {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.modal-body .checkbox span {
-  font-weight: 600;
-}
-
-.modal-body .checkbox small {
-  display: block;
-  font-weight: 400;
-  color: #6a7695;
-}
 
 .modal-title {
   font-size: 18px;
@@ -498,7 +495,7 @@
 
 .modal-subtitle {
   font-size: 12px;
-  color: #6a7695;
+  color: #475569;
 }
 
 .modal-close {
@@ -547,7 +544,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
-  color: #6a7695;
+  color: #475569;
 }
 
 .info-line {
@@ -604,11 +601,16 @@
 }
 
 .field select,
-.field input[type="date"] {
+.field input[type="date"],
+.field input[type="number"] {
   border: 1px solid #d1d8ea;
   border-radius: 10px;
   padding: 8px 10px;
   background: #f7f9ff;
+}
+
+.field input[type="number"] {
+  font-variant-numeric: tabular-nums;
 }
 
 @media print {
