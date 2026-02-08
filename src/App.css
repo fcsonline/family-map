@@ -51,18 +51,34 @@
   max-width: 320px;
 }
 
-.timeline-year {
-  position: absolute;
-  top: -18px;
-  right: 0;
-  font-size: 12px;
+.timeline-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 13px;
   font-weight: 700;
-  color: #1d4ed8;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+  z-index: 6;
 }
 
 .react-flow__controls-button svg {
   width: 16px;
   height: 16px;
+}
+
+.react-flow__controls-button.warning-toggle {
+  background: #fbbf24;
+  color: #92400e;
+}
+
+.react-flow__controls-button.warning-toggle.is-off {
+  background: #e2e8f0;
+  color: #64748b;
 }
 
 .search input {
@@ -232,8 +248,19 @@
   background: #ef4444;
 }
 
-.app-shell.dark .timeline-year {
-  color: #93c5fd;
+.app-shell.dark .react-flow__controls-button.warning-toggle {
+  background: #f59e0b;
+  color: #1f2937;
+}
+
+.app-shell.dark .react-flow__controls-button.warning-toggle.is-off {
+  background: #334155;
+  color: #cbd5f5;
+}
+
+.app-shell.dark .timeline-toast {
+  background: #2563eb;
+  color: #e2e8f0;
 }
 
 .app-shell.dark .modal {
@@ -504,6 +531,11 @@
   color: white;
   cursor: pointer;
   font-weight: 600;
+}
+
+.modal-save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .info-modal {

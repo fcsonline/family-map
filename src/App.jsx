@@ -117,11 +117,11 @@ const translations = {
     warningMissingParent: "has a child with a missing parent",
     infoTitle: "About",
     yearsLabel: "years",
-    timeline: "Timeline",
-    timelineTitle: "Timeline",
+    timeline: "Time travel",
+    timelineTitle: "Time travel",
     timelineSubtitle: "Animate the tree by year",
-    timelineStart: "Start date",
-    timelineEnd: "End date",
+    timelineStart: "Start year",
+    timelineEnd: "End year",
     timelinePlay: "Start",
     timelineStop: "Stop",
     timelineCancel: "Cancel",
@@ -153,11 +153,11 @@ const translations = {
     warningMissingParent: "tiene un hijo con un padre/madre faltante",
     infoTitle: "Sobre",
     yearsLabel: "años",
-    timeline: "Cronología",
-    timelineTitle: "Cronología",
+    timeline: "Time travel",
+    timelineTitle: "Time travel",
     timelineSubtitle: "Anima el árbol por año",
-    timelineStart: "Fecha de inicio",
-    timelineEnd: "Fecha de fin",
+    timelineStart: "Año de inicio",
+    timelineEnd: "Año de fin",
     timelinePlay: "Iniciar",
     timelineStop: "Detener",
     timelineCancel: "Cancelar",
@@ -189,11 +189,11 @@ const translations = {
     warningMissingParent: "té un fill amb pare/mare absent",
     infoTitle: "Sobre",
     yearsLabel: "anys",
-    timeline: "Cronologia",
-    timelineTitle: "Cronologia",
+    timeline: "Time travel",
+    timelineTitle: "Time travel",
     timelineSubtitle: "Anima l'arbre per any",
-    timelineStart: "Data d'inici",
-    timelineEnd: "Data de fi",
+    timelineStart: "Any d'inici",
+    timelineEnd: "Any de fi",
     timelinePlay: "Inicia",
     timelineStop: "Atura",
     timelineCancel: "Cancel·la",
@@ -225,11 +225,11 @@ const translations = {
     warningMissingParent: "tem filho com pai/mãe ausente",
     infoTitle: "Sobre",
     yearsLabel: "anos",
-    timeline: "Linha do tempo",
-    timelineTitle: "Linha do tempo",
+    timeline: "Time travel",
+    timelineTitle: "Time travel",
     timelineSubtitle: "Anime a árvore por ano",
-    timelineStart: "Data inicial",
-    timelineEnd: "Data final",
+    timelineStart: "Ano inicial",
+    timelineEnd: "Ano final",
     timelinePlay: "Iniciar",
     timelineStop: "Parar",
     timelineCancel: "Cancelar",
@@ -710,6 +710,7 @@ const FlowCanvas = ({
         <ControlButton
           onClick={onToggleWarnings}
           title={warningsToggleLabel}
+          className={`warning-toggle ${showWarnings ? "is-on" : "is-off"}`}
         >
           <FaExclamationTriangle />
         </ControlButton>
@@ -865,6 +866,26 @@ const App = () => {
     [people, locale],
   );
 
+  const currentYear = new Date().getFullYear();
+  const { minTimelineYear } = useMemo(() => {
+    const years = people
+      .flatMap((person) => [
+        getYearFromDate(person.birth_day),
+        getYearFromDate(person.death_day),
+      ])
+      .filter((year) => Number.isFinite(year));
+    if (!years.length) {
+      return { minTimelineYear: currentYear };
+    }
+    return { minTimelineYear: Math.min(...years) };
+  }, [people, currentYear]);
+
+  useEffect(() => {
+    if (!isTimelineOpen) return;
+    setTimelineStart(String(minTimelineYear));
+    setTimelineEnd(String(currentYear));
+  }, [isTimelineOpen, minTimelineYear, currentYear]);
+
   const filteredMatches = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return [];
@@ -896,6 +917,13 @@ const App = () => {
     if (!selectedInfo?.birth_day) return null;
     return getAgeYears(selectedInfo.birth_day, selectedInfo.death_day);
   }, [selectedInfo]);
+
+  const parsedTimelineStart = Number.parseInt(timelineStart, 10);
+  const parsedTimelineEnd = Number.parseInt(timelineEnd, 10);
+  const isTimelineRangeValid =
+    Number.isFinite(parsedTimelineStart) &&
+    Number.isFinite(parsedTimelineEnd) &&
+    parsedTimelineEnd > parsedTimelineStart;
 
   const { nodes, edges } = useMemo(
     () =>
@@ -964,9 +992,6 @@ const App = () => {
           </div>
         </div>
         <div className="search" ref={searchRef}>
-          {timelineYear !== null && (
-            <div className="timeline-year">{timelineYear}</div>
-          )}
           <input
             ref={searchInputRef}
             type="text"
@@ -1109,6 +1134,11 @@ const App = () => {
           />
         </ReactFlowProvider>
       </div>
+      {timelineYear !== null && (
+        <div className="timeline-toast" role="status">
+          {timelineYear}
+        </div>
+      )}
       {isSettingsOpen && (
         <div className="modal-backdrop" role="presentation">
           <div className="modal">
@@ -1196,7 +1226,9 @@ const App = () => {
               <label className="field">
                 <span>{copy.timelineStart}</span>
                 <input
-                  type="date"
+                  type="number"
+                  min={minTimelineYear}
+                  max={currentYear}
                   value={timelineStart}
                   onChange={(event) => setTimelineStart(event.target.value)}
                 />
@@ -1204,7 +1236,9 @@ const App = () => {
               <label className="field">
                 <span>{copy.timelineEnd}</span>
                 <input
-                  type="date"
+                  type="number"
+                  min={minTimelineYear}
+                  max={currentYear}
                   value={timelineEnd}
                   onChange={(event) => setTimelineEnd(event.target.value)}
                 />
@@ -1221,15 +1255,14 @@ const App = () => {
               <button
                 className="modal-save"
                 type="button"
+                disabled={!isTimelineRangeValid}
                 onClick={() => {
-                  const startYear = getYearFromDate(timelineStart);
-                  const endYear = getYearFromDate(timelineEnd);
-                  if (startYear === null || endYear === null) return;
+                  if (!isTimelineRangeValid) return;
                   timelineRef.current = {
-                    endYear,
+                    endYear: parsedTimelineEnd,
                     intervalId: timelineRef.current?.intervalId,
                   };
-                  setTimelineYear(startYear);
+                  setTimelineYear(parsedTimelineStart);
                   setIsTimelineRunning(true);
                   setIsTimelineOpen(false);
                 }}
