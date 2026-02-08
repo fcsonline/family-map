@@ -161,6 +161,10 @@ const translations = {
     timelinePlay: "Start",
     timelineStop: "Stop",
     timelineCancel: "Cancel",
+    timelineSpeed: "Speed",
+    timelineSpeedSlow: "Slow",
+    timelineSpeedNormal: "Normal",
+    timelineSpeedFast: "Fast",
     treeErrorTitle: "Tree unavailable",
     treeErrorMessage: "Something went wrong while rendering the family tree.",
     treeErrorAction: "Try again",
@@ -199,6 +203,10 @@ const translations = {
     timelinePlay: "Iniciar",
     timelineStop: "Detener",
     timelineCancel: "Cancelar",
+    timelineSpeed: "Velocidad",
+    timelineSpeedSlow: "Lenta",
+    timelineSpeedNormal: "Normal",
+    timelineSpeedFast: "Rápida",
     treeErrorTitle: "Árbol no disponible",
     treeErrorMessage: "Se produjo un error al renderizar el árbol familiar.",
     treeErrorAction: "Intentar de nuevo",
@@ -237,6 +245,10 @@ const translations = {
     timelinePlay: "Inicia",
     timelineStop: "Atura",
     timelineCancel: "Cancel·la",
+    timelineSpeed: "Velocitat",
+    timelineSpeedSlow: "Lenta",
+    timelineSpeedNormal: "Normal",
+    timelineSpeedFast: "Ràpida",
     treeErrorTitle: "Arbre no disponible",
     treeErrorMessage: "S'ha produït un error en renderitzar l'arbre familiar.",
     treeErrorAction: "Torna-ho a provar",
@@ -275,6 +287,10 @@ const translations = {
     timelinePlay: "Iniciar",
     timelineStop: "Parar",
     timelineCancel: "Cancelar",
+    timelineSpeed: "Velocidade",
+    timelineSpeedSlow: "Lenta",
+    timelineSpeedNormal: "Normal",
+    timelineSpeedFast: "Rápida",
     treeErrorTitle: "Árvore indisponível",
     treeErrorMessage: "Ocorreu um erro ao renderizar a árvore da família.",
     treeErrorAction: "Tentar novamente",
@@ -831,6 +847,7 @@ const App = () => {
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [timelineStart, setTimelineStart] = useState("");
   const [timelineEnd, setTimelineEnd] = useState("");
+  const [timelineSpeed, setTimelineSpeed] = useState(900);
   const [timelineYear, setTimelineYear] = useState(null);
   const [isTimelineRunning, setIsTimelineRunning] = useState(false);
   const timelineRef = useRef(null);
@@ -944,9 +961,9 @@ const App = () => {
         }
         return next;
       });
-    }, 900);
+    }, timelineSpeed);
     return () => clearInterval(timelineRef.current.intervalId);
-  }, [isTimelineRunning, timelineYear]);
+  }, [isTimelineRunning, timelineYear, timelineSpeed]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -1352,6 +1369,17 @@ const App = () => {
                   value={timelineEnd}
                   onChange={(event) => setTimelineEnd(event.target.value)}
                 />
+              </label>
+              <label className="field">
+                <span>{copy.timelineSpeed}</span>
+                <select
+                  value={timelineSpeed}
+                  onChange={(event) => setTimelineSpeed(Number(event.target.value))}
+                >
+                  <option value={1500}>{copy.timelineSpeedSlow}</option>
+                  <option value={900}>{copy.timelineSpeedNormal}</option>
+                  <option value={500}>{copy.timelineSpeedFast}</option>
+                </select>
               </label>
             </div>
             <div className="modal-footer">
