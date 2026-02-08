@@ -20,6 +20,7 @@ import {
   FaPrint,
   FaRegHeart,
   FaSkull,
+  FaClock,
 } from "react-icons/fa";
 import "reactflow/dist/style.css";
 import "./App.css";
@@ -73,6 +74,21 @@ const getAgeYears = (birthDate, endDate) => {
   return years >= 0 ? years : null;
 };
 
+const getYearFromDate = (value) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.getFullYear();
+};
+
+const isPersonInYear = (person, year) => {
+  const birthYear = getYearFromDate(person.birth_day);
+  const deathYear = getYearFromDate(person.death_day);
+  if (birthYear !== null && year < birthYear) return false;
+  if (deathYear !== null && year > deathYear) return false;
+  return true;
+};
+
 const translations = {
   "en-US": {
     title: "Family Tree",
@@ -94,11 +110,21 @@ const translations = {
     warningsTitle: "Data warnings",
     warningsLabel: "Show warnings",
     warningsDescription: "Highlight inconsistent relationships and show alerts.",
+    warningsShow: "Show warnings",
+    warningsHide: "Hide warnings",
     warningMissingPartner: "has a missing partner",
     warningNoReciprocal: "is not reciprocated",
     warningMissingParent: "has a child with a missing parent",
     infoTitle: "About",
     yearsLabel: "years",
+    timeline: "Timeline",
+    timelineTitle: "Timeline",
+    timelineSubtitle: "Animate the tree by year",
+    timelineStart: "Start date",
+    timelineEnd: "End date",
+    timelinePlay: "Start",
+    timelineStop: "Stop",
+    timelineCancel: "Cancel",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -120,11 +146,21 @@ const translations = {
     warningsTitle: "Advertencias de datos",
     warningsLabel: "Mostrar advertencias",
     warningsDescription: "Resalta relaciones inconsistentes y muestra alertas.",
+    warningsShow: "Mostrar advertencias",
+    warningsHide: "Ocultar advertencias",
     warningMissingPartner: "tiene una pareja faltante",
     warningNoReciprocal: "no es recíproco",
     warningMissingParent: "tiene un hijo con un padre/madre faltante",
     infoTitle: "Sobre",
     yearsLabel: "años",
+    timeline: "Cronología",
+    timelineTitle: "Cronología",
+    timelineSubtitle: "Anima el árbol por año",
+    timelineStart: "Fecha de inicio",
+    timelineEnd: "Fecha de fin",
+    timelinePlay: "Iniciar",
+    timelineStop: "Detener",
+    timelineCancel: "Cancelar",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -146,11 +182,21 @@ const translations = {
     warningsTitle: "Avisos de dades",
     warningsLabel: "Mostra avisos",
     warningsDescription: "Ressalta relacions incoherents i mostra alertes.",
+    warningsShow: "Mostra avisos",
+    warningsHide: "Amaga avisos",
     warningMissingPartner: "té una parella absent",
     warningNoReciprocal: "no és recíproc",
     warningMissingParent: "té un fill amb pare/mare absent",
     infoTitle: "Sobre",
     yearsLabel: "anys",
+    timeline: "Cronologia",
+    timelineTitle: "Cronologia",
+    timelineSubtitle: "Anima l'arbre per any",
+    timelineStart: "Data d'inici",
+    timelineEnd: "Data de fi",
+    timelinePlay: "Inicia",
+    timelineStop: "Atura",
+    timelineCancel: "Cancel·la",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -172,11 +218,21 @@ const translations = {
     warningsTitle: "Avisos de dados",
     warningsLabel: "Mostrar avisos",
     warningsDescription: "Destaque relações inconsistentes e mostre alertas.",
+    warningsShow: "Mostrar avisos",
+    warningsHide: "Ocultar avisos",
     warningMissingPartner: "tem parceiro ausente",
     warningNoReciprocal: "não é recíproco",
     warningMissingParent: "tem filho com pai/mãe ausente",
     infoTitle: "Sobre",
     yearsLabel: "anos",
+    timeline: "Linha do tempo",
+    timelineTitle: "Linha do tempo",
+    timelineSubtitle: "Anime a árvore por ano",
+    timelineStart: "Data inicial",
+    timelineEnd: "Data final",
+    timelinePlay: "Iniciar",
+    timelineStop: "Parar",
+    timelineCancel: "Cancelar",
   },
 };
 
@@ -337,6 +393,7 @@ const buildGraph = (
   matchIds,
   onInfo,
   showWarnings,
+  timelineYear,
 ) => {
   const { peopleById, coupleById, marriageByPerson, childrenByCouple } =
     buildModel(people);
@@ -422,6 +479,9 @@ const buildGraph = (
               : "",
             isMatch: matchIds?.has(partnerId),
             onInfo,
+            isTimelineDimmed: timelineYear
+              ? !isPersonInYear(person, timelineYear)
+              : false,
           },
         };
         nodes.push(node);
@@ -490,6 +550,7 @@ const PersonNode = ({ data }) => {
     warningMessage,
     isMatch,
     onInfo,
+    isTimelineDimmed,
   } = data;
   const copy = getTranslations(locale);
   const isDeceased = Boolean(person.death_day);
@@ -502,7 +563,9 @@ const PersonNode = ({ data }) => {
     <div
       className={`person-card ${isSelected ? "selected" : ""} ${
         isDimmed ? "dimmed" : ""
-      } ${hasWarning ? "warning" : ""} ${isMatch ? "match" : ""}`}
+      } ${hasWarning ? "warning" : ""} ${isMatch ? "match" : ""} ${
+        isTimelineDimmed ? "timeline-dim" : ""
+      }`}
     >
       <Handle type="target" position={Position.Top} isConnectable={false} />
       <Handle
@@ -587,7 +650,17 @@ const MarriageNode = ({ data }) => (
   </div>
 );
 
-const FlowCanvas = ({ nodes, edges, onSelect, selectedId, onPrint, fitViewKey }) => {
+const FlowCanvas = ({
+  nodes,
+  edges,
+  onSelect,
+  selectedId,
+  onPrint,
+  fitViewKey,
+  onToggleWarnings,
+  showWarnings,
+  warningsToggleLabel,
+}) => {
   const { fitView, setCenter } = useReactFlow();
 
   const handlePrint = () => {
@@ -634,6 +707,12 @@ const FlowCanvas = ({ nodes, edges, onSelect, selectedId, onPrint, fitViewKey })
       >
       <Background gap={16} color="#d6dbe8" />
       <Controls>
+        <ControlButton
+          onClick={onToggleWarnings}
+          title={warningsToggleLabel}
+        >
+          <FaExclamationTriangle />
+        </ControlButton>
         <ControlButton onClick={handlePrint} title="Print">
           <FaPrint />
         </ControlButton>
@@ -657,6 +736,12 @@ const App = () => {
   const [fitViewKey, setFitViewKey] = useState(0);
   const [selectedInfo, setSelectedInfo] = useState(null);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [timelineStart, setTimelineStart] = useState("");
+  const [timelineEnd, setTimelineEnd] = useState("");
+  const [timelineYear, setTimelineYear] = useState(null);
+  const [isTimelineRunning, setIsTimelineRunning] = useState(false);
+  const timelineRef = useRef(null);
   const fileInputRef = useRef(null);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -741,6 +826,24 @@ const App = () => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  useEffect(() => {
+    if (!isTimelineRunning || timelineYear === null) return;
+    if (!timelineRef.current) return;
+    clearInterval(timelineRef.current.intervalId);
+    timelineRef.current.intervalId = setInterval(() => {
+      setTimelineYear((current) => {
+        if (current === null) return current;
+        const next = current + 1;
+        if (next > timelineRef.current.endYear) {
+          setIsTimelineRunning(false);
+          return timelineRef.current.endYear;
+        }
+        return next;
+      });
+    }, 900);
+    return () => clearInterval(timelineRef.current.intervalId);
+  }, [isTimelineRunning, timelineYear]);
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -805,8 +908,18 @@ const App = () => {
         matchIds,
         (person) => setSelectedInfo(person),
         showWarnings,
+        timelineYear,
       ),
-    [people, selectedId, locale, warningIds, warningById, matchIds, showWarnings],
+    [
+      people,
+      selectedId,
+      locale,
+      warningIds,
+      warningById,
+      matchIds,
+      showWarnings,
+      timelineYear,
+    ],
   );
 
   useEffect(() => {
@@ -814,10 +927,31 @@ const App = () => {
     setDraftShowWarnings(true);
   }, [people, locale]);
 
+  const handleStopTimeline = () => {
+    setIsTimelineRunning(false);
+    setTimelineYear(null);
+    if (timelineRef.current?.intervalId) {
+      clearInterval(timelineRef.current.intervalId);
+    }
+  };
+
+  const handleToggleWarnings = () => {
+    setShowWarnings((prev) => {
+      const next = !prev;
+      localStorage.setItem("geo-family-show-warnings", next ? "true" : "false");
+      setDraftShowWarnings(next);
+      return next;
+    });
+  };
+
   const handleSelect = (id) => {
     setSelectedId(id);
     setSelectedInfo(null);
   };
+
+  const warningsToggleLabel = showWarnings
+    ? copy.warningsHide
+    : copy.warningsShow;
 
   return (
     <div className={`app-shell ${theme}`}>
@@ -830,6 +964,9 @@ const App = () => {
           </div>
         </div>
         <div className="search" ref={searchRef}>
+          {timelineYear !== null && (
+            <div className="timeline-year">{timelineYear}</div>
+          )}
           <input
             ref={searchInputRef}
             type="text"
@@ -919,6 +1056,20 @@ const App = () => {
             {copy.loadCsv}
           </button>
           <button
+            className={`settings ${isTimelineRunning ? "stop" : ""}`}
+            type="button"
+            onClick={() => {
+              if (isTimelineRunning) {
+                handleStopTimeline();
+              } else {
+                setIsTimelineOpen(true);
+              }
+            }}
+          >
+            <FaClock />
+            {isTimelineRunning ? copy.timelineStop : copy.timeline}
+          </button>
+          <button
             className="settings"
             type="button"
             onClick={() => setIsSettingsOpen(true)}
@@ -952,6 +1103,9 @@ const App = () => {
             selectedId={selectedId}
             onPrint={() => window.print()}
             fitViewKey={fitViewKey}
+            onToggleWarnings={handleToggleWarnings}
+            showWarnings={showWarnings}
+            warningsToggleLabel={warningsToggleLabel}
           />
         </ReactFlowProvider>
       </div>
@@ -1024,6 +1178,63 @@ const App = () => {
                 }}
               >
                 {copy.save}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isTimelineOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <div className="modal">
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">{copy.timelineTitle}</div>
+                <div className="modal-subtitle">{copy.timelineSubtitle}</div>
+              </div>
+            </div>
+            <div className="modal-body">
+              <label className="field">
+                <span>{copy.timelineStart}</span>
+                <input
+                  type="date"
+                  value={timelineStart}
+                  onChange={(event) => setTimelineStart(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>{copy.timelineEnd}</span>
+                <input
+                  type="date"
+                  value={timelineEnd}
+                  onChange={(event) => setTimelineEnd(event.target.value)}
+                />
+              </label>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => setIsTimelineOpen(false)}
+              >
+                {copy.timelineCancel}
+              </button>
+              <button
+                className="modal-save"
+                type="button"
+                onClick={() => {
+                  const startYear = getYearFromDate(timelineStart);
+                  const endYear = getYearFromDate(timelineEnd);
+                  if (startYear === null || endYear === null) return;
+                  timelineRef.current = {
+                    endYear,
+                    intervalId: timelineRef.current?.intervalId,
+                  };
+                  setTimelineYear(startYear);
+                  setIsTimelineRunning(true);
+                  setIsTimelineOpen(false);
+                }}
+              >
+                {copy.timelinePlay}
               </button>
             </div>
           </div>
