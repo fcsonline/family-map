@@ -1,35 +1,35 @@
-id,name,birth_day,death_day,birth_place,father,mother,married_to,avatar_url,info
-p1,Henry Rivera,1940-03-04,2005-10-12,Buenos Aires,,,,https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=200&h=200,"Henry grew up near the river docks of Buenos Aires and spent his early years helping his family run a small grocery stall. After military service, he became a city bus driver and was known for remembering every regular passenger’s name.
+id,name,birth_day,death_day,birth_place,father,mother,avatar_url,info
+p1,Henry Rivera,1940-03-04,2005-10-12,Buenos Aires,,,https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=200&h=200,"Henry grew up near the river docks of Buenos Aires and spent his early years helping his family run a small grocery stall. After military service, he became a city bus driver and was known for remembering every regular passenger’s name.
 
 In retirement he volunteered at the neighborhood football club, mentoring younger drivers and organizing community events.
 
 His notebooks about local routes are still kept by his grandchildren as a family keepsake.
 
 Friends remember his habit of carrying a pocket radio, narrating every match with enthusiastic commentary."
-p2,Elena Soto,1942-11-22,2010-04-08,Buenos Aires,,,,https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?auto=format&fit=facearea&w=200&h=200,"Elena studied accounting and later managed the finances of a textile workshop, keeping the business afloat through difficult years. She loved music and hosted weekend gatherings where the family would sing tangos late into the night.
+p2,Elena Soto,1942-11-22,2010-04-08,Buenos Aires,,,https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?auto=format&fit=facearea&w=200&h=200,"Elena studied accounting and later managed the finances of a textile workshop, keeping the business afloat through difficult years. She loved music and hosted weekend gatherings where the family would sing tangos late into the night.
 
 She collected handwritten recipes from neighbors, and her kitchen became the unofficial community center for celebrations.
 
 Her handwritten ledger still sits beside the family piano as a symbol of her care."
-p3,Carlos Rivera Sanchez,1964-05-17,,Cordoba,p1,p2,p4,https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=200&h=200,
-p4,Lucia Gomez,1966-08-09,,Cordoba,,,,https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=200&h=200,
-p5,Marina Rivera,1990-01-18,,Rosario,p3,p4,,https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=200&h=200,
-p6,Martin Rivera,1992-10-28,,Rosario,p3,p4,,https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=facearea&w=200&h=200,
-p7,Sofia Rivera,2018-07-21,,Rosario,p6,,,https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=facearea&w=200&h=200,
-p8,Raul Perez,1938-12-02,2001-06-14,Salta,,,,https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=200&h=200,"Raul began as a railway apprentice in Salta, then spent two decades maintaining mountain tracks. He wrote short stories about the towns he visited, leaving notebooks for his grandchildren.
+p3,Carlos Rivera Sanchez,1964-05-17,,Cordoba,p1,p2,https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&w=200&h=200,
+p4,Lucia Gomez,1966-08-09,,Cordoba,,,https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&w=200&h=200,
+p5,Marina Rivera,1990-01-18,,Rosario,p3,p4,https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=200&h=200,
+p6,Martin Rivera,1992-10-28,,Rosario,p3,p4,https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=facearea&w=200&h=200,
+p7,Sofia Rivera,2018-07-21,,Rosario,p6,,https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=facearea&w=200&h=200,
+p8,Raul Perez,1938-12-02,2001-06-14,Salta,,,https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=facearea&w=200&h=200,"Raul began as a railway apprentice in Salta, then spent two decades maintaining mountain tracks. He wrote short stories about the towns he visited, leaving notebooks for his grandchildren.
 
 Even after retirement he helped preserve old station signs and donated many artifacts to the local museum.
 
 On Sundays he hosted chess matches at the plaza, teaching patience to anyone who sat across from him."
-p9,Adriana Perez,1945-04-28,2015-09-01,Salta,,,,https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=200&h=200,
-p10,Valeria Perez,1970-09-30,,Mendoza,p8,p9,p11,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=200&h=200,
-p11,Diego Alvarez,1968-02-11,,Mendoza,,,,https://images.unsplash.com/photo-1546456073-6712f79251bb?auto=format&fit=facearea&w=200&h=200,
-p12,Nicolas Alvarez,1995-11-03,,Mendoza,p11,p10,,https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=facearea&w=200&h=200,
-p13,Lucia Alvarez,1998-03-16,,Mendoza,p11,p10,,https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=200&h=200,
-p14,Isabel Rivera Dominguez de la Vega,1988-07-01,,Rosario,p3,p4,p15,https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=facearea&w=200&h=200,"Isabel studied architecture and helped restore historic homes in Rosario. She is passionate about river conservation and runs community workshops about sustainable building materials.
+p9,Adriana Perez,1945-04-28,2015-09-01,Salta,,,https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=facearea&w=200&h=200,
+p10,Valeria Perez,1970-09-30,,Mendoza,p8,p9,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=200&h=200,
+p11,Diego Alvarez,1968-02-11,,Mendoza,,,https://images.unsplash.com/photo-1546456073-6712f79251bb?auto=format&fit=facearea&w=200&h=200,
+p12,Nicolas Alvarez,1995-11-03,,Mendoza,p11,p10,https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?auto=format&fit=facearea&w=200&h=200,
+p13,Lucia Alvarez,1998-03-16,,Mendoza,p11,p10,https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=200&h=200,
+p14,Isabel Rivera Dominguez de la Vega,1988-07-01,,Rosario,p3,p4,https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=facearea&w=200&h=200,"Isabel studied architecture and helped restore historic homes in Rosario. She is passionate about river conservation and runs community workshops about sustainable building materials.
 
 She also mentors design students and curates a photo archive of family projects.
 
 Her sketchbooks are filled with restoration ideas and notes from community meetings."
-p15,Julian Castro,1987-12-20,,Rosario,,,,https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=facearea&w=200&h=200,
-p16,Matias Castro,2012-05-14,,Rosario,p15,p14,,https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=facearea&w=200&h=200,
+p15,Julian Castro,1987-12-20,,Rosario,,,https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=facearea&w=200&h=200,
+p16,Matias Castro,2012-05-14,,Rosario,p15,p14,https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=facearea&w=200&h=200,

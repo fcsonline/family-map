@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  geo-family:
+    build: .
+    ports:
+      - "8080:3001"
+    environment:
+      - PORT=3001
+      - DATA_DIR=/data
+    volumes:
+      - geo-family-data:/data
+volumes:
+  geo-family-data:

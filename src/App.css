@@ -128,6 +128,7 @@
 
 .toolbar-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -135,6 +136,26 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.data-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.data-mode-label {
+  font-weight: 500;
+}
+
+.data-mode-value {
+  text-transform: uppercase;
 }
 
 .file-input {
@@ -235,6 +256,19 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.loading-banner {
+  padding: 8px 28px;
+  background: #e0f2fe;
+  color: #0c4a6e;
+  font-size: 13px;
+}
+
+.error-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  border-bottom: 1px solid #fecaca;
 }
 
 .app-shell.dark {
@@ -345,7 +379,10 @@
 
 .app-shell.dark .field select,
 .app-shell.dark .field input[type="number"],
-.app-shell.dark .field input[type="date"] {
+.app-shell.dark .field input[type="date"],
+.app-shell.dark .field input[type="text"],
+.app-shell.dark .field input[type="file"],
+.app-shell.dark .field textarea {
   background: #1f2937;
   color: #e2e8f0;
   border-color: #334155;
@@ -366,6 +403,31 @@
 .app-shell.dark .warning-dismiss {
   background: #7c2d12;
   color: #fdba74;
+}
+
+.app-shell.dark .data-mode {
+  background: #1e293b;
+  color: #c7d2fe;
+}
+
+.app-shell.dark .loading-banner {
+  background: #0f172a;
+  color: #bae6fd;
+}
+
+.app-shell.dark .error-banner {
+  background: #3f1d1d;
+  color: #fecaca;
+  border-color: #7f1d1d;
+}
+
+.app-shell.dark .form-error {
+  background: #3f1d1d;
+  color: #fecaca;
+}
+
+.app-shell.dark .modal-delete {
+  background: #b91c1c;
 }
 
 .app-shell.dark .modal-save {
@@ -591,6 +653,44 @@
   cursor: not-allowed;
 }
 
+.modal-delete {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #dc2626;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editor-modal {
+  width: min(520px, 95vw);
+}
+
+.form-error {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .info-modal {
   width: 800px;
 }
@@ -658,7 +758,10 @@
 
 .field select,
 .field input[type="date"],
-.field input[type="number"] {
+.field input[type="number"],
+.field input[type="text"],
+.field input[type="file"],
+.field textarea {
   border: 1px solid #d1d8ea;
   border-radius: 10px;
   padding: 8px 10px;
@@ -667,6 +770,10 @@
 
 .field input[type="number"] {
   font-variant-numeric: tabular-nums;
+}
+
+.field textarea {
+  resize: vertical;
 }
 
 @media print {
