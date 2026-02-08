@@ -5,9 +5,9 @@
 }
 
 .toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(240px, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   padding: 18px 28px;
   background: #ffffff;
@@ -165,6 +165,45 @@
   background: #f4f6fb;
 }
 
+.tree-error {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.tree-error-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+  text-align: center;
+  max-width: 360px;
+}
+
+.tree-error-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d2846;
+  margin-bottom: 6px;
+}
+
+.tree-error-message {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 16px;
+}
+
+.tree-error-action {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #1d4ed8;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .warning-banner {
   padding: 10px 28px;
   background: #fff7ed;
@@ -223,6 +262,23 @@
 
 .app-shell.dark .flow-wrapper {
   background: #0b1220;
+}
+
+.app-shell.dark .tree-error-card {
+  background: #0f172a;
+  box-shadow: 0 18px 45px rgba(2, 6, 23, 0.7);
+}
+
+.app-shell.dark .tree-error-title {
+  color: #e2e8f0;
+}
+
+.app-shell.dark .tree-error-message {
+  color: #cbd5f5;
+}
+
+.app-shell.dark .tree-error-action {
+  background: #2563eb;
 }
 
 .app-shell.dark .person-card {

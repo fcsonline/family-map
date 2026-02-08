@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
   ControlButton,
@@ -161,6 +161,9 @@ const translations = {
     timelinePlay: "Start",
     timelineStop: "Stop",
     timelineCancel: "Cancel",
+    treeErrorTitle: "Tree unavailable",
+    treeErrorMessage: "Something went wrong while rendering the family tree.",
+    treeErrorAction: "Try again",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -196,6 +199,9 @@ const translations = {
     timelinePlay: "Iniciar",
     timelineStop: "Detener",
     timelineCancel: "Cancelar",
+    treeErrorTitle: "Árbol no disponible",
+    treeErrorMessage: "Se produjo un error al renderizar el árbol familiar.",
+    treeErrorAction: "Intentar de nuevo",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -231,6 +237,9 @@ const translations = {
     timelinePlay: "Inicia",
     timelineStop: "Atura",
     timelineCancel: "Cancel·la",
+    treeErrorTitle: "Arbre no disponible",
+    treeErrorMessage: "S'ha produït un error en renderitzar l'arbre familiar.",
+    treeErrorAction: "Torna-ho a provar",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -266,6 +275,9 @@ const translations = {
     timelinePlay: "Iniciar",
     timelineStop: "Parar",
     timelineCancel: "Cancelar",
+    treeErrorTitle: "Árvore indisponível",
+    treeErrorMessage: "Ocorreu um erro ao renderizar a árvore da família.",
+    treeErrorAction: "Tentar novamente",
   },
 };
 
@@ -684,6 +696,44 @@ const MarriageNode = ({ data }) => (
   </div>
 );
 
+class TreeErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    const { hasError } = this.state;
+    const { title, message, actionLabel, onRetry, children } = this.props;
+
+    if (hasError) {
+      return (
+        <div className="tree-error" role="alert">
+          <div className="tree-error-card">
+            <div className="tree-error-title">{title}</div>
+            <div className="tree-error-message">{message}</div>
+            <button className="tree-error-action" type="button" onClick={onRetry}>
+              {actionLabel}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return children;
+  }
+}
+
 const FlowCanvas = ({
   nodes,
   edges,
@@ -697,6 +747,10 @@ const FlowCanvas = ({
   printLabel,
 }) => {
   const { fitView, setCenter } = useReactFlow();
+  const nodeTypes = useMemo(
+    () => ({ person: PersonNode, marriage: MarriageNode }),
+    [],
+  );
 
   const handlePrint = () => {
     fitView({ padding: 0.2, duration: 300 });
@@ -726,7 +780,7 @@ const FlowCanvas = ({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={{ person: PersonNode, marriage: MarriageNode }}
+        nodeTypes={nodeTypes}
         fitView
         nodesConnectable={false}
         onNodeClick={(_event, node) => {
@@ -771,6 +825,7 @@ const App = () => {
   const [draftTheme, setDraftTheme] = useState("light");
   const [showWarnings, setShowWarnings] = useState(true);
   const [fitViewKey, setFitViewKey] = useState(0);
+  const [treeErrorKey, setTreeErrorKey] = useState(0);
   const [selectedInfo, setSelectedInfo] = useState(null);
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
@@ -1014,7 +1069,6 @@ const App = () => {
     setShowWarnings((prev) => {
       const next = !prev;
       localStorage.setItem("geo-family-show-warnings", next ? "true" : "false");
-      setDraftShowWarnings(next);
       return next;
     });
   };
@@ -1167,20 +1221,28 @@ const App = () => {
         </div>
       )}
       <div className="flow-wrapper">
-        <ReactFlowProvider>
-          <FlowCanvas
-            nodes={nodes}
-            edges={edges}
-            onSelect={handleSelect}
-            selectedId={selectedId}
-            onPrint={() => window.print()}
-            fitViewKey={fitViewKey}
-            onToggleWarnings={handleToggleWarnings}
-            showWarnings={showWarnings}
-            warningsToggleLabel={warningsToggleLabel}
-            printLabel={copy.print}
-          />
-        </ReactFlowProvider>
+        <TreeErrorBoundary
+          title={copy.treeErrorTitle}
+          message={copy.treeErrorMessage}
+          actionLabel={copy.treeErrorAction}
+          onRetry={() => setTreeErrorKey((value) => value + 1)}
+          resetKey={treeErrorKey}
+        >
+          <ReactFlowProvider key={treeErrorKey}>
+            <FlowCanvas
+              nodes={nodes}
+              edges={edges}
+              onSelect={handleSelect}
+              selectedId={selectedId}
+              onPrint={() => window.print()}
+              fitViewKey={fitViewKey}
+              onToggleWarnings={handleToggleWarnings}
+              showWarnings={showWarnings}
+              warningsToggleLabel={warningsToggleLabel}
+              printLabel={copy.print}
+            />
+          </ReactFlowProvider>
+        </TreeErrorBoundary>
       </div>
       {timelineYear !== null && (
         <div className="timeline-toast" role="status" aria-live="polite" aria-atomic="true">
