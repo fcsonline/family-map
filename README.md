@@ -27,8 +27,8 @@ npm run server
 
 ## Data modes
 
-- `VITE_DATA_MODE=local` (default) stores data in IndexedDB.
-- `VITE_DATA_MODE=api` uses the REST API.
+- `VITE_DATA_MODE=local` (default) keeps all people data in your browser using IndexedDB. CSV imports update the local database and exports are generated in the browser. Use this mode for a fully offline, single-user experience.
+- `VITE_DATA_MODE=api` reads and writes through the REST API backed by SQLite on the server. CSV imports are uploaded to `/api/import` and exports are downloaded from `/api/export`. Use this mode when you want persistence across devices or users.
 - `VITE_API_BASE_URL` sets the API base URL (leave empty for same-origin).
 
 ## CSV import/export

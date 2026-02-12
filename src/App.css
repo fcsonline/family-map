@@ -691,6 +691,33 @@
   gap: 6px;
 }
 
+.import-guidance-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.import-guidance-list code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #1d2846;
+  font-size: 12px;
+}
+
+.app-shell.dark .import-guidance-list {
+  color: #cbd5f5;
+}
+
+.app-shell.dark .import-guidance-list code {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
 .info-modal {
   width: 800px;
 }

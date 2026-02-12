@@ -16,11 +16,13 @@ import {
   FaFileDownload,
   FaFileUpload,
   FaHeart,
+  FaHome,
   FaInfoCircle,
   FaMapMarkerAlt,
   FaPen,
   FaPrint,
   FaRegHeart,
+  FaServer,
   FaSkull,
   FaTrash,
   FaUserPlus,
@@ -28,6 +30,7 @@ import {
 import "reactflow/dist/style.css";
 import "./App.css";
 import {
+  PERSON_FIELDS,
   createEmptyPerson,
   normalizePerson,
   slugifyId,
@@ -184,9 +187,13 @@ const translations = {
     avatarUploadLabel: "Upload avatar",
     infoLabel: "Bio",
     importTitle: "Import CSV",
-    importSubtitle: "Choose how to bring in new people",
-    importReplace: "Replace existing",
-    importMerge: "Merge with existing",
+    importSubtitle: "Importing replaces your current data.",
+    importColumnsTitle: "CSV columns (in order)",
+    importNotesTitle: "Notes",
+    importNoteDate: "Dates use YYYY-MM-DD.",
+    importNoteBlank: "Leave unknown values blank.",
+    importNoteIds: "IDs must be unique and match father/mother entries.",
+    importNoteTemplate: "Use Export CSV for a template.",
     importAction: "Import",
     importCancel: "Cancel",
     dataModeLabel: "Mode",
@@ -202,6 +209,8 @@ const translations = {
     importError: "Unable to import the CSV.",
     exportError: "Unable to export the CSV.",
     deleteConfirm: "Delete this person?",
+    dataModeLocalTooltip: "Local mode saves to this browser via IndexedDB.",
+    dataModeApiTooltip: "API mode syncs with the server and SQLite database.",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -264,9 +273,13 @@ const translations = {
     avatarUploadLabel: "Subir avatar",
     infoLabel: "Biografía",
     importTitle: "Importar CSV",
-    importSubtitle: "Elige cómo traer nuevos datos",
-    importReplace: "Reemplazar existentes",
-    importMerge: "Combinar existentes",
+    importSubtitle: "La importación reemplaza tus datos actuales.",
+    importColumnsTitle: "Columnas del CSV (en orden)",
+    importNotesTitle: "Notas",
+    importNoteDate: "Las fechas usan YYYY-MM-DD.",
+    importNoteBlank: "Deja en blanco los valores desconocidos.",
+    importNoteIds: "Los ID deben ser únicos y coincidir con las entradas de padre/madre.",
+    importNoteTemplate: "Usa Exportar CSV como plantilla.",
     importAction: "Importar",
     importCancel: "Cancelar",
     dataModeLabel: "Modo",
@@ -282,6 +295,8 @@ const translations = {
     importError: "No se pudo importar el CSV.",
     exportError: "No se pudo exportar el CSV.",
     deleteConfirm: "¿Eliminar esta persona?",
+    dataModeLocalTooltip: "El modo local guarda en este navegador con IndexedDB.",
+    dataModeApiTooltip: "El modo API sincroniza con el servidor y SQLite.",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -344,9 +359,13 @@ const translations = {
     avatarUploadLabel: "Puja avatar",
     infoLabel: "Biografia",
     importTitle: "Importa CSV",
-    importSubtitle: "Tria com importar les dades",
-    importReplace: "Substitueix existents",
-    importMerge: "Combina existents",
+    importSubtitle: "La importació substitueix les dades actuals.",
+    importColumnsTitle: "Columnes del CSV (en ordre)",
+    importNotesTitle: "Notes",
+    importNoteDate: "Les dates fan servir YYYY-MM-DD.",
+    importNoteBlank: "Deixa en blanc els valors desconeguts.",
+    importNoteIds: "Els ID han de ser únics i coincidir amb les entrades de pare/mare.",
+    importNoteTemplate: "Fes servir Exporta CSV com a plantilla.",
     importAction: "Importa",
     importCancel: "Cancel·la",
     dataModeLabel: "Mode",
@@ -362,6 +381,8 @@ const translations = {
     importError: "No s'ha pogut importar el CSV.",
     exportError: "No s'ha pogut exportar el CSV.",
     deleteConfirm: "Vols eliminar aquesta persona?",
+    dataModeLocalTooltip: "El mode local desa en aquest navegador amb IndexedDB.",
+    dataModeApiTooltip: "El mode API sincronitza amb el servidor i SQLite.",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -424,9 +445,13 @@ const translations = {
     avatarUploadLabel: "Enviar avatar",
     infoLabel: "Biografia",
     importTitle: "Importar CSV",
-    importSubtitle: "Escolha como trazer os dados",
-    importReplace: "Substituir existentes",
-    importMerge: "Mesclar existentes",
+    importSubtitle: "A importação substitui seus dados atuais.",
+    importColumnsTitle: "Colunas do CSV (na ordem)",
+    importNotesTitle: "Notas",
+    importNoteDate: "As datas usam YYYY-MM-DD.",
+    importNoteBlank: "Deixe em branco os valores desconhecidos.",
+    importNoteIds: "Os IDs devem ser únicos e corresponder às entradas de pai/mãe.",
+    importNoteTemplate: "Use Exportar CSV como modelo.",
     importAction: "Importar",
     importCancel: "Cancelar",
     dataModeLabel: "Modo",
@@ -442,6 +467,8 @@ const translations = {
     importError: "Não foi possível importar o CSV.",
     exportError: "Não foi possível exportar o CSV.",
     deleteConfirm: "Excluir esta pessoa?",
+    dataModeLocalTooltip: "O modo local salva neste navegador com IndexedDB.",
+    dataModeApiTooltip: "O modo API sincroniza com o servidor e SQLite.",
   },
 };
 
@@ -897,6 +924,9 @@ const FlowCanvas = ({
   showWarnings,
   warningsToggleLabel,
   printLabel,
+  dataModeLabel,
+  dataModeTooltip,
+  dataModeIcon,
 }) => {
   const { fitView, setCenter } = useReactFlow();
   const nodeTypes = useMemo(
@@ -947,7 +977,7 @@ const FlowCanvas = ({
         }}
       >
       <Background gap={16} color="#d6dbe8" />
-      <Controls>
+      <Controls showInteractive={false}>
         <ControlButton
           onClick={onToggleWarnings}
           title={warningsToggleLabel}
@@ -959,6 +989,13 @@ const FlowCanvas = ({
         </ControlButton>
         <ControlButton onClick={handlePrint} title={printLabel} aria-label={printLabel}>
           <FaPrint />
+        </ControlButton>
+        <ControlButton
+          onClick={() => {}}
+          title={dataModeTooltip}
+          aria-label={`${dataModeLabel}. ${dataModeTooltip}`}
+        >
+          {dataModeIcon}
         </ControlButton>
       </Controls>
     </ReactFlow>
@@ -1006,7 +1043,6 @@ const App = () => {
   const [actionError, setActionError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [importMode, setImportMode] = useState("replace");
   const [importFile, setImportFile] = useState(null);
   const [importError, setImportError] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -1247,6 +1283,9 @@ const App = () => {
     : copy.warningsShow;
   const dataModeLabel =
     dataMode === "api" ? copy.dataModeApi : copy.dataModeLocal;
+  const dataModeTooltip =
+    dataMode === "api" ? copy.dataModeApiTooltip : copy.dataModeLocalTooltip;
+  const dataModeIcon = dataMode === "api" ? <FaServer /> : <FaHome />;
 
   const sortedPeople = useMemo(
     () => [...people].sort((left, right) => left.name.localeCompare(right.name)),
@@ -1344,7 +1383,7 @@ const App = () => {
     setImportError("");
     setIsImporting(true);
     try {
-      await importCsv(importFile, importMode);
+      await importCsv(importFile, "replace");
       setSelectedId("");
       setSearchTerm("");
       setIsSearchOpen(false);
@@ -1527,10 +1566,6 @@ const App = () => {
             <FaCog />
             {copy.settings}
           </button>
-          <div className="data-mode">
-            <span className="data-mode-label">{copy.dataModeLabel}:</span>
-            <span className="data-mode-value">{dataModeLabel}</span>
-          </div>
         </div>
       </div>
       {showWarnings && warnings.length > 0 && (
@@ -1581,6 +1616,9 @@ const App = () => {
               showWarnings={showWarnings}
               warningsToggleLabel={warningsToggleLabel}
               printLabel={copy.print}
+              dataModeLabel={dataModeLabel}
+              dataModeTooltip={dataModeTooltip}
+              dataModeIcon={dataModeIcon}
             />
           </ReactFlowProvider>
         </TreeErrorBoundary>
@@ -1935,29 +1973,23 @@ const App = () => {
             </div>
             <div className="modal-body">
               <div className="field">
-                <span>{copy.importTitle}</span>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      name="import-mode"
-                      value="replace"
-                      checked={importMode === "replace"}
-                      onChange={() => setImportMode("replace")}
-                    />
-                    {copy.importReplace}
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="import-mode"
-                      value="merge"
-                      checked={importMode === "merge"}
-                      onChange={() => setImportMode("merge")}
-                    />
-                    {copy.importMerge}
-                  </label>
-                </div>
+                <span>{copy.importColumnsTitle}</span>
+                <ul className="import-guidance-list">
+                  {PERSON_FIELDS.map((field) => (
+                    <li key={field}>
+                      <code>{field}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="field">
+                <span>{copy.importNotesTitle}</span>
+                <ul className="import-guidance-list">
+                  <li>{copy.importNoteDate}</li>
+                  <li>{copy.importNoteBlank}</li>
+                  <li>{copy.importNoteIds}</li>
+                  <li>{copy.importNoteTemplate}</li>
+                </ul>
               </div>
               <label className="field">
                 <span>{copy.importCsv}</span>
