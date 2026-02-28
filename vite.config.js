@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  envPrefix: "",
+  envPrefix: "VITE_",
   plugins: [react()],
   server: {
     proxy: {
