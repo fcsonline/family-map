@@ -915,9 +915,9 @@ const App = () => {
   }, [locale]);
 
   useEffect(() => {
-    const storedLocale = localStorage.getItem("geo-family-locale");
-    const storedTheme = localStorage.getItem("geo-family-theme");
-    const storedWarnings = localStorage.getItem("geo-family-show-warnings");
+    const storedLocale = localStorage.getItem("family-map-locale");
+    const storedTheme = localStorage.getItem("family-map-theme");
+    const storedWarnings = localStorage.getItem("family-map-show-warnings");
     if (storedLocale && translations[storedLocale]) {
       setLocale(storedLocale);
     }
@@ -1085,7 +1085,7 @@ const App = () => {
   const handleToggleWarnings = () => {
     setShowWarnings((prev) => {
       const next = !prev;
-      localStorage.setItem("geo-family-show-warnings", next ? "true" : "false");
+      localStorage.setItem("family-map-show-warnings", next ? "true" : "false");
       return next;
     });
   };
@@ -1321,8 +1321,8 @@ const App = () => {
                 onClick={() => {
                   setLocale(draftLocale);
                   setTheme(draftTheme);
-                  localStorage.setItem("geo-family-locale", draftLocale);
-                  localStorage.setItem("geo-family-theme", draftTheme);
+                  localStorage.setItem("family-map-locale", draftLocale);
+                  localStorage.setItem("family-map-theme", draftTheme);
                   setIsSettingsOpen(false);
                 }}
               >

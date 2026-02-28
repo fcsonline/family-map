@@ -1,4 +1,4 @@
-# Geo Family Tree
+# Family Map
 
 A React + React Flow family tree viewer driven by a CSV source of truth.
 
@@ -22,13 +22,13 @@ npm run dev
 Build the image:
 
 ```bash
-docker build -t geo-family .
+docker build -t family-map .
 ```
 
 Run the container:
 
 ```bash
-docker run --rm -p 8080:80 geo-family
+docker run --rm -p 8080:80 family-map
 ```
 
 Open `http://localhost:8080` in your browser.
@@ -40,7 +40,7 @@ Create a `docker-compose.yml` with:
 ```yaml
 version: "3.9"
 services:
-  geo-family:
+  family-map:
     build: .
     ports:
       - "8080:80"
