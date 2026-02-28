@@ -1,11 +1,13 @@
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
+  BaseEdge,
   ControlButton,
   Controls,
   Handle,
   Position,
   ReactFlowProvider,
+  getSmoothStepPath,
   useReactFlow,
 } from "reactflow";
 import {
@@ -45,6 +47,7 @@ const verticalGap = 220;
 const leftPadding = 80;
 const topPadding = 60;
 const marriageSize = 20;
+const childEdgeOffset = 24;
 
 const normalizeId = (value) => (value ? value.trim() : "");
 
@@ -750,13 +753,16 @@ const buildGraph = (
       });
     });
     const children = childrenByCouple.get(couple.id) || [];
-    children.forEach((childId) => {
+    children.forEach((childId, index) => {
+      const offsetIndex = index - (children.length - 1) / 2;
+      const offset = offsetIndex * childEdgeOffset;
       edges.push({
         id: `${marriageNodeId}-${childId}`,
         source: marriageNodeId,
         target: childId,
         sourceHandle: "bottom",
-        type: "step",
+        type: "family",
+        data: { offset },
       });
     });
   });
@@ -875,6 +881,33 @@ const MarriageNode = ({ data }) => (
   </div>
 );
 
+const FamilyEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style,
+  markerEnd,
+  data,
+}) => {
+  const offset = data?.offset ?? 0;
+  const [edgePath] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+    borderRadius: 12,
+    offset,
+  });
+
+  return <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />;
+};
+
 class TreeErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -933,6 +966,7 @@ const FlowCanvas = ({
     () => ({ person: PersonNode, marriage: MarriageNode }),
     [],
   );
+  const edgeTypes = useMemo(() => ({ family: FamilyEdge }), []);
 
   const handlePrint = () => {
     fitView({ padding: 0.2, duration: 300 });
@@ -963,6 +997,7 @@ const FlowCanvas = ({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         nodesConnectable={false}
         onNodeClick={(_event, node) => {
