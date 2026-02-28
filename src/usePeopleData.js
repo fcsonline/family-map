@@ -125,9 +125,9 @@ const buildCsvText = (people) =>
   );
 
 export const usePeopleData = () => {
-  const mode = (import.meta.env.VITE_DATA_MODE || "local").toLowerCase();
+  const mode = (import.meta.env.DATA_MODE || "local").toLowerCase();
   const dataMode = mode === "api" ? "api" : "local";
-  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+  const apiBase = import.meta.env.API_BASE_URL || "";
 
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);

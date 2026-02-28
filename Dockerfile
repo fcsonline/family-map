@@ -4,7 +4,7 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ENV VITE_DATA_MODE=api
+ENV DATA_MODE=api
 RUN npm run build
 
 FROM node:18-alpine
