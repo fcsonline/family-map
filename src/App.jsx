@@ -1,29 +1,43 @@
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
+  BaseEdge,
   ControlButton,
   Controls,
   Handle,
   Position,
   ReactFlowProvider,
+  getSmoothStepPath,
   useReactFlow,
 } from "reactflow";
-import Papa from "papaparse";
 import {
   FaBirthdayCake,
+  FaClock,
   FaCog,
   FaExclamationTriangle,
-  FaFileCsv,
+  FaFileDownload,
+  FaFileUpload,
   FaHeart,
+  FaHome,
   FaInfoCircle,
   FaMapMarkerAlt,
+  FaPen,
   FaPrint,
   FaRegHeart,
+  FaServer,
   FaSkull,
-  FaClock,
+  FaTrash,
+  FaUserPlus,
 } from "react-icons/fa";
 import "reactflow/dist/style.css";
 import "./App.css";
+import {
+  PERSON_FIELDS,
+  createEmptyPerson,
+  normalizePerson,
+  slugifyId,
+  usePeopleData,
+} from "./usePeopleData";
 
 const personWidth = 220;
 const personHeight = 120;
@@ -33,21 +47,9 @@ const verticalGap = 220;
 const leftPadding = 80;
 const topPadding = 60;
 const marriageSize = 20;
+const childEdgeOffset = 24;
 
 const normalizeId = (value) => (value ? value.trim() : "");
-
-const normalizePerson = (row) => ({
-  id: normalizeId(row.id),
-  name: row.name?.trim() || "Unknown",
-  birth_day: row.birth_day?.trim() || "",
-  death_day: row.death_day?.trim() || "",
-  birth_place: row.birth_place?.trim() || "",
-  father: normalizeId(row.father),
-  mother: normalizeId(row.mother),
-  married_to: normalizeId(row.married_to),
-  avatar_url: row.avatar_url?.trim() || "",
-  info: row.info?.trim() || "",
-});
 
 const formatDate = (value, locale) => {
   if (!value) return "";
@@ -149,7 +151,7 @@ const translations = {
     warningsHide: "Hide warnings",
     warningMissingPartner: "has a missing partner",
     warningNoReciprocal: "is not reciprocated",
-    warningMissingParent: "has a child with a missing parent",
+    warningMissingParent: "has a missing parent",
     infoTitle: "About",
     yearsLabel: "years",
     print: "Print",
@@ -168,6 +170,50 @@ const translations = {
     treeErrorTitle: "Tree unavailable",
     treeErrorMessage: "Something went wrong while rendering the family tree.",
     treeErrorAction: "Try again",
+    addPerson: "Add person",
+    editPerson: "Edit person",
+    deletePerson: "Delete",
+    importCsv: "Import CSV",
+    exportCsv: "Export CSV",
+    loading: "Loading data...",
+    personModalAddTitle: "Add person",
+    personModalEditTitle: "Edit person",
+    personModalSubtitle: "Manage the selected person details",
+    personNameLabel: "Name",
+    personIdLabel: "ID",
+    birthDateLabel: "Birth date",
+    deathDateLabel: "Death date",
+    birthPlaceLabel: "Birth place",
+    fatherLabel: "Father",
+    motherLabel: "Mother",
+    avatarUrlLabel: "Avatar URL",
+    avatarUploadLabel: "Upload avatar",
+    infoLabel: "Bio",
+    importTitle: "Import CSV",
+    importSubtitle: "Importing replaces your current data.",
+    importColumnsTitle: "CSV columns (in order)",
+    importNotesTitle: "Notes",
+    importNoteDate: "Dates use YYYY-MM-DD.",
+    importNoteBlank: "Leave unknown values blank.",
+    importNoteIds: "IDs must be unique and match father/mother entries.",
+    importNoteTemplate: "Use Export CSV for a template.",
+    importAction: "Import",
+    importCancel: "Cancel",
+    dataModeLabel: "Mode",
+    dataModeLocal: "Local",
+    dataModeApi: "API",
+    uploadAvatar: "Upload",
+    editorCreate: "Create",
+    editorUpdate: "Update",
+    editorErrorRequired: "Name and ID are required.",
+    editorErrorDuplicate: "This ID already exists.",
+    editorErrorSave: "Unable to save the person.",
+    editorErrorDelete: "Unable to delete the person.",
+    importError: "Unable to import the CSV.",
+    exportError: "Unable to export the CSV.",
+    deleteConfirm: "Delete this person?",
+    dataModeLocalTooltip: "Local mode saves to this browser via IndexedDB.",
+    dataModeApiTooltip: "API mode syncs with the server and SQLite database.",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -191,7 +237,7 @@ const translations = {
     warningsHide: "Ocultar advertencias",
     warningMissingPartner: "tiene una pareja faltante",
     warningNoReciprocal: "no es recíproco",
-    warningMissingParent: "tiene un hijo con un padre/madre faltante",
+    warningMissingParent: "tiene un padre/madre faltante",
     infoTitle: "Sobre",
     yearsLabel: "años",
     print: "Imprimir",
@@ -210,6 +256,50 @@ const translations = {
     treeErrorTitle: "Árbol no disponible",
     treeErrorMessage: "Se produjo un error al renderizar el árbol familiar.",
     treeErrorAction: "Intentar de nuevo",
+    addPerson: "Agregar persona",
+    editPerson: "Editar persona",
+    deletePerson: "Eliminar",
+    importCsv: "Importar CSV",
+    exportCsv: "Exportar CSV",
+    loading: "Cargando datos...",
+    personModalAddTitle: "Agregar persona",
+    personModalEditTitle: "Editar persona",
+    personModalSubtitle: "Gestiona los datos seleccionados",
+    personNameLabel: "Nombre",
+    personIdLabel: "ID",
+    birthDateLabel: "Fecha de nacimiento",
+    deathDateLabel: "Fecha de fallecimiento",
+    birthPlaceLabel: "Lugar de nacimiento",
+    fatherLabel: "Padre",
+    motherLabel: "Madre",
+    avatarUrlLabel: "URL del avatar",
+    avatarUploadLabel: "Subir avatar",
+    infoLabel: "Biografía",
+    importTitle: "Importar CSV",
+    importSubtitle: "La importación reemplaza tus datos actuales.",
+    importColumnsTitle: "Columnas del CSV (en orden)",
+    importNotesTitle: "Notas",
+    importNoteDate: "Las fechas usan YYYY-MM-DD.",
+    importNoteBlank: "Deja en blanco los valores desconocidos.",
+    importNoteIds: "Los ID deben ser únicos y coincidir con las entradas de padre/madre.",
+    importNoteTemplate: "Usa Exportar CSV como plantilla.",
+    importAction: "Importar",
+    importCancel: "Cancelar",
+    dataModeLabel: "Modo",
+    dataModeLocal: "Local",
+    dataModeApi: "API",
+    uploadAvatar: "Subir",
+    editorCreate: "Crear",
+    editorUpdate: "Actualizar",
+    editorErrorRequired: "Se requiere nombre e ID.",
+    editorErrorDuplicate: "Este ID ya existe.",
+    editorErrorSave: "No se pudo guardar la persona.",
+    editorErrorDelete: "No se pudo eliminar la persona.",
+    importError: "No se pudo importar el CSV.",
+    exportError: "No se pudo exportar el CSV.",
+    deleteConfirm: "¿Eliminar esta persona?",
+    dataModeLocalTooltip: "El modo local guarda en este navegador con IndexedDB.",
+    dataModeApiTooltip: "El modo API sincroniza con el servidor y SQLite.",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -233,7 +323,7 @@ const translations = {
     warningsHide: "Amaga avisos",
     warningMissingPartner: "té una parella absent",
     warningNoReciprocal: "no és recíproc",
-    warningMissingParent: "té un fill amb pare/mare absent",
+    warningMissingParent: "té un pare/mare absent",
     infoTitle: "Sobre",
     yearsLabel: "anys",
     print: "Imprimeix",
@@ -252,6 +342,50 @@ const translations = {
     treeErrorTitle: "Arbre no disponible",
     treeErrorMessage: "S'ha produït un error en renderitzar l'arbre familiar.",
     treeErrorAction: "Torna-ho a provar",
+    addPerson: "Afegeix persona",
+    editPerson: "Edita persona",
+    deletePerson: "Elimina",
+    importCsv: "Importa CSV",
+    exportCsv: "Exporta CSV",
+    loading: "Carregant dades...",
+    personModalAddTitle: "Afegeix persona",
+    personModalEditTitle: "Edita persona",
+    personModalSubtitle: "Gestiona les dades seleccionades",
+    personNameLabel: "Nom",
+    personIdLabel: "ID",
+    birthDateLabel: "Data de naixement",
+    deathDateLabel: "Data de defunció",
+    birthPlaceLabel: "Lloc de naixement",
+    fatherLabel: "Pare",
+    motherLabel: "Mare",
+    avatarUrlLabel: "URL d'avatar",
+    avatarUploadLabel: "Puja avatar",
+    infoLabel: "Biografia",
+    importTitle: "Importa CSV",
+    importSubtitle: "La importació substitueix les dades actuals.",
+    importColumnsTitle: "Columnes del CSV (en ordre)",
+    importNotesTitle: "Notes",
+    importNoteDate: "Les dates fan servir YYYY-MM-DD.",
+    importNoteBlank: "Deixa en blanc els valors desconeguts.",
+    importNoteIds: "Els ID han de ser únics i coincidir amb les entrades de pare/mare.",
+    importNoteTemplate: "Fes servir Exporta CSV com a plantilla.",
+    importAction: "Importa",
+    importCancel: "Cancel·la",
+    dataModeLabel: "Mode",
+    dataModeLocal: "Local",
+    dataModeApi: "API",
+    uploadAvatar: "Puja",
+    editorCreate: "Crea",
+    editorUpdate: "Actualitza",
+    editorErrorRequired: "Calen nom i ID.",
+    editorErrorDuplicate: "Aquest ID ja existeix.",
+    editorErrorSave: "No s'ha pogut desar la persona.",
+    editorErrorDelete: "No s'ha pogut eliminar la persona.",
+    importError: "No s'ha pogut importar el CSV.",
+    exportError: "No s'ha pogut exportar el CSV.",
+    deleteConfirm: "Vols eliminar aquesta persona?",
+    dataModeLocalTooltip: "El mode local desa en aquest navegador amb IndexedDB.",
+    dataModeApiTooltip: "El mode API sincronitza amb el servidor i SQLite.",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -275,7 +409,7 @@ const translations = {
     warningsHide: "Ocultar avisos",
     warningMissingPartner: "tem parceiro ausente",
     warningNoReciprocal: "não é recíproco",
-    warningMissingParent: "tem filho com pai/mãe ausente",
+    warningMissingParent: "tem pai/mãe ausente",
     infoTitle: "Sobre",
     yearsLabel: "anos",
     print: "Imprimir",
@@ -294,6 +428,50 @@ const translations = {
     treeErrorTitle: "Árvore indisponível",
     treeErrorMessage: "Ocorreu um erro ao renderizar a árvore da família.",
     treeErrorAction: "Tentar novamente",
+    addPerson: "Adicionar pessoa",
+    editPerson: "Editar pessoa",
+    deletePerson: "Excluir",
+    importCsv: "Importar CSV",
+    exportCsv: "Exportar CSV",
+    loading: "Carregando dados...",
+    personModalAddTitle: "Adicionar pessoa",
+    personModalEditTitle: "Editar pessoa",
+    personModalSubtitle: "Gerencie os dados selecionados",
+    personNameLabel: "Nome",
+    personIdLabel: "ID",
+    birthDateLabel: "Data de nascimento",
+    deathDateLabel: "Data de falecimento",
+    birthPlaceLabel: "Local de nascimento",
+    fatherLabel: "Pai",
+    motherLabel: "Mãe",
+    avatarUrlLabel: "URL do avatar",
+    avatarUploadLabel: "Enviar avatar",
+    infoLabel: "Biografia",
+    importTitle: "Importar CSV",
+    importSubtitle: "A importação substitui seus dados atuais.",
+    importColumnsTitle: "Colunas do CSV (na ordem)",
+    importNotesTitle: "Notas",
+    importNoteDate: "As datas usam YYYY-MM-DD.",
+    importNoteBlank: "Deixe em branco os valores desconhecidos.",
+    importNoteIds: "Os IDs devem ser únicos e corresponder às entradas de pai/mãe.",
+    importNoteTemplate: "Use Exportar CSV como modelo.",
+    importAction: "Importar",
+    importCancel: "Cancelar",
+    dataModeLabel: "Modo",
+    dataModeLocal: "Local",
+    dataModeApi: "API",
+    uploadAvatar: "Enviar",
+    editorCreate: "Criar",
+    editorUpdate: "Atualizar",
+    editorErrorRequired: "Nome e ID são obrigatórios.",
+    editorErrorDuplicate: "Este ID já existe.",
+    editorErrorSave: "Não foi possível salvar a pessoa.",
+    editorErrorDelete: "Não foi possível excluir a pessoa.",
+    importError: "Não foi possível importar o CSV.",
+    exportError: "Não foi possível exportar o CSV.",
+    deleteConfirm: "Excluir esta pessoa?",
+    dataModeLocalTooltip: "O modo local salva neste navegador com IndexedDB.",
+    dataModeApiTooltip: "O modo API sincroniza com o servidor e SQLite.",
   },
 };
 
@@ -345,12 +523,6 @@ const buildModel = (people) => {
     });
     return coupleId;
   };
-
-  people.forEach((person) => {
-    if (person.married_to) {
-      ensureCouple(person.id, person.married_to);
-    }
-  });
 
   people.forEach((person) => {
     if (person.father || person.mother) {
@@ -411,19 +583,7 @@ const buildWarnings = (people, locale) => {
     warningById.set(personId, list);
   };
 
-  people.forEach((person) => {
-    if (person.married_to) {
-      const partner = peopleById.get(person.married_to);
-      if (!partner) {
-        addWarning(person.id, `${person.name} ${copy.warningMissingPartner}.`);
-      } else if (partner.married_to !== person.id) {
-        addWarning(
-          person.id,
-          `${person.name} ${copy.warningNoReciprocal} (${partner.name}).`,
-        );
-      }
-    }
-  });
+  const isMissingRecord = (parentId) => parentId && !peopleById.has(parentId);
 
   people.forEach((child) => {
     if (child.father && !child.mother) {
@@ -439,6 +599,12 @@ const buildWarnings = (people, locale) => {
         child.id,
         `${motherName} ${copy.warningMissingParent} (${child.name}).`,
       );
+    }
+    if (isMissingRecord(child.father)) {
+      addWarning(child.id, `${child.name} ${copy.warningMissingParent}.`);
+    }
+    if (isMissingRecord(child.mother)) {
+      addWarning(child.id, `${child.name} ${copy.warningMissingParent}.`);
     }
   });
 
@@ -587,13 +753,16 @@ const buildGraph = (
       });
     });
     const children = childrenByCouple.get(couple.id) || [];
-    children.forEach((childId) => {
+    children.forEach((childId, index) => {
+      const offsetIndex = index - (children.length - 1) / 2;
+      const offset = offsetIndex * childEdgeOffset;
       edges.push({
         id: `${marriageNodeId}-${childId}`,
         source: marriageNodeId,
         target: childId,
         sourceHandle: "bottom",
-        type: "step",
+        type: "family",
+        data: { offset },
       });
     });
   });
@@ -712,6 +881,33 @@ const MarriageNode = ({ data }) => (
   </div>
 );
 
+const FamilyEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style,
+  markerEnd,
+  data,
+}) => {
+  const offset = data?.offset ?? 0;
+  const [edgePath] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition,
+    targetPosition,
+    borderRadius: 12,
+    offset,
+  });
+
+  return <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />;
+};
+
 class TreeErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -761,12 +957,16 @@ const FlowCanvas = ({
   showWarnings,
   warningsToggleLabel,
   printLabel,
+  dataModeLabel,
+  dataModeTooltip,
+  dataModeIcon,
 }) => {
   const { fitView, setCenter } = useReactFlow();
   const nodeTypes = useMemo(
     () => ({ person: PersonNode, marriage: MarriageNode }),
     [],
   );
+  const edgeTypes = useMemo(() => ({ family: FamilyEdge }), []);
 
   const handlePrint = () => {
     fitView({ padding: 0.2, duration: 300 });
@@ -797,6 +997,7 @@ const FlowCanvas = ({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         nodesConnectable={false}
         onNodeClick={(_event, node) => {
@@ -811,7 +1012,7 @@ const FlowCanvas = ({
         }}
       >
       <Background gap={16} color="#d6dbe8" />
-      <Controls>
+      <Controls showInteractive={false}>
         <ControlButton
           onClick={onToggleWarnings}
           title={warningsToggleLabel}
@@ -824,13 +1025,32 @@ const FlowCanvas = ({
         <ControlButton onClick={handlePrint} title={printLabel} aria-label={printLabel}>
           <FaPrint />
         </ControlButton>
+        <ControlButton
+          onClick={() => {}}
+          title={dataModeTooltip}
+          aria-label={`${dataModeLabel}. ${dataModeTooltip}`}
+        >
+          {dataModeIcon}
+        </ControlButton>
       </Controls>
     </ReactFlow>
   );
 };
 
 const App = () => {
-  const [people, setPeople] = useState([]);
+  const {
+    people,
+    loading,
+    error,
+    dataMode,
+    loadPeople,
+    createPerson,
+    updatePerson,
+    removePerson,
+    importCsv,
+    exportCsv,
+    uploadAvatar,
+  } = usePeopleData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -850,43 +1070,47 @@ const App = () => {
   const [timelineSpeed, setTimelineSpeed] = useState(900);
   const [timelineYear, setTimelineYear] = useState(null);
   const [isTimelineRunning, setIsTimelineRunning] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState("add");
+  const [editorDraft, setEditorDraft] = useState(createEmptyPerson());
+  const [editorIdLocked, setEditorIdLocked] = useState(false);
+  const [editorError, setEditorError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importError, setImportError] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const timelineRef = useRef(null);
-  const fileInputRef = useRef(null);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
   const settingsModalRef = useRef(null);
   const timelineModalRef = useRef(null);
   const infoModalRef = useRef(null);
+  const editorModalRef = useRef(null);
+  const importModalRef = useRef(null);
 
   useModalFocusTrap(isSettingsOpen, settingsModalRef);
   useModalFocusTrap(isTimelineOpen, timelineModalRef);
   useModalFocusTrap(Boolean(selectedInfo), infoModalRef);
+  useModalFocusTrap(isEditorOpen, editorModalRef);
+  useModalFocusTrap(isImportOpen, importModalRef);
 
-  const parseCsv = (text) => {
-    const parsed = Papa.parse(text, {
-      header: true,
-      skipEmptyLines: true,
-    });
-    return parsed.data.map(normalizePerson).filter((item) => item.id);
-  };
 
   useEffect(() => {
-    const load = async () => {
-      const response = await fetch("/people.csv");
-      const text = await response.text();
-      setPeople(parseCsv(text));
-    };
-
-    load();
-  }, []);
+    loadPeople();
+  }, [loadPeople]);
 
   useEffect(() => {
     const handleKey = (event) => {
       if (event.key === "Escape") {
-        if (isSettingsOpen || isTimelineOpen || selectedInfo) {
+        if (isSettingsOpen || isTimelineOpen || selectedInfo || isEditorOpen || isImportOpen) {
           setIsSettingsOpen(false);
           setIsTimelineOpen(false);
           setSelectedInfo(null);
+          setIsEditorOpen(false);
+          setIsImportOpen(false);
           return;
         }
         setSelectedId("");
@@ -908,7 +1132,15 @@ const App = () => {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [selectedId, selectedInfo, people, isSettingsOpen, isTimelineOpen]);
+  }, [
+    selectedId,
+    selectedInfo,
+    people,
+    isSettingsOpen,
+    isTimelineOpen,
+    isEditorOpen,
+    isImportOpen,
+  ]);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -965,20 +1197,6 @@ const App = () => {
     return () => clearInterval(timelineRef.current.intervalId);
   }, [isTimelineRunning, timelineYear, timelineSpeed]);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === "string" ? reader.result : "";
-      setPeople(parseCsv(text));
-      setSelectedId("");
-      setSelectedInfo(null);
-      setSearchTerm("");
-      setIsSearchOpen(false);
-    };
-    reader.readAsText(file);
-  };
 
   const copy = getTranslations(locale);
   const { warnings, warningIds, warningById } = useMemo(
@@ -1098,6 +1316,154 @@ const App = () => {
   const warningsToggleLabel = showWarnings
     ? copy.warningsHide
     : copy.warningsShow;
+  const dataModeLabel =
+    dataMode === "api" ? copy.dataModeApi : copy.dataModeLocal;
+  const dataModeTooltip =
+    dataMode === "api" ? copy.dataModeApiTooltip : copy.dataModeLocalTooltip;
+  const dataModeIcon = dataMode === "api" ? <FaServer /> : <FaHome />;
+
+  const sortedPeople = useMemo(
+    () => [...people].sort((left, right) => left.name.localeCompare(right.name)),
+    [people],
+  );
+
+  const parentOptions = useMemo(
+    () => sortedPeople.filter((person) => person.id !== editorDraft.id),
+    [sortedPeople, editorDraft.id],
+  );
+
+  const openAddPerson = () => {
+    setEditorMode("add");
+    setEditorDraft(createEmptyPerson());
+    setEditorIdLocked(false);
+    setEditorError("");
+    setIsEditorOpen(true);
+  };
+
+  const openEditPerson = (personId) => {
+    const person = people.find((entry) => entry.id === personId);
+    if (!person) return;
+    setEditorMode("edit");
+    setEditorDraft(normalizePerson(person));
+    setEditorIdLocked(true);
+    setEditorError("");
+    setIsEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setIsEditorOpen(false);
+    setEditorError("");
+  };
+
+  const handleEditorNameChange = (value) => {
+    setEditorDraft((prev) => {
+      const next = { ...prev, name: value };
+      if (!editorIdLocked) {
+        next.id = slugifyId(value);
+      }
+      return next;
+    });
+  };
+
+  const handleEditorIdChange = (value) => {
+    setEditorIdLocked(true);
+    setEditorDraft((prev) => ({ ...prev, id: value }));
+  };
+
+  const handleSavePerson = async () => {
+    setEditorError("");
+    if (!editorDraft.name || !editorDraft.id) {
+      setEditorError(copy.editorErrorRequired);
+      return;
+    }
+    if (editorMode === "add" && people.some((person) => person.id === editorDraft.id)) {
+      setEditorError(copy.editorErrorDuplicate);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      if (editorMode === "add") {
+        await createPerson(editorDraft);
+      } else {
+        await updatePerson(editorDraft);
+      }
+      setSelectedId(editorDraft.id);
+      closeEditor();
+    } catch (err) {
+      setEditorError(copy.editorErrorSave);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeletePerson = async () => {
+    if (!editorDraft.id) return;
+    if (!window.confirm(copy.deleteConfirm)) return;
+    setIsSaving(true);
+    try {
+      await removePerson(editorDraft.id);
+      if (selectedId === editorDraft.id) {
+        setSelectedId("");
+      }
+      closeEditor();
+    } catch (err) {
+      setEditorError(copy.editorErrorDelete);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleImportSubmit = async () => {
+    if (!importFile) return;
+    setImportError("");
+    setIsImporting(true);
+    try {
+      await importCsv(importFile, "replace");
+      setSelectedId("");
+      setSearchTerm("");
+      setIsSearchOpen(false);
+      setIsImportOpen(false);
+      setImportFile(null);
+    } catch (err) {
+      setImportError(copy.importError);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setActionError("");
+    try {
+      const csv = await exportCsv();
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "people.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setActionError(copy.exportError);
+    }
+  };
+
+  const handleAvatarUpload = async (file) => {
+    if (!file) return;
+    setEditorError("");
+    setAvatarUploading(true);
+    try {
+      const url = await uploadAvatar(file);
+      if (url) {
+        setEditorDraft((prev) => ({ ...prev, avatar_url: url }));
+      }
+    } catch (err) {
+      setEditorError(copy.editorErrorSave);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   return (
     <div className={`app-shell ${theme}`}>
@@ -1171,13 +1537,6 @@ const App = () => {
           )}
         </div>
         <div className="toolbar-actions">
-          <input
-            ref={fileInputRef}
-            className="file-input"
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-          />
           {selectedId && (
             <button
               className="reset"
@@ -1190,13 +1549,35 @@ const App = () => {
               {copy.clearHighlight}
             </button>
           )}
+          <button className="settings" type="button" onClick={openAddPerson}>
+            <FaUserPlus />
+            {copy.addPerson}
+          </button>
+          {selectedId && (
+            <button
+              className="settings"
+              type="button"
+              onClick={() => openEditPerson(selectedId)}
+            >
+              <FaPen />
+              {copy.editPerson}
+            </button>
+          )}
           <button
             className="settings"
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              setImportError("");
+              setImportFile(null);
+              setIsImportOpen(true);
+            }}
           >
-            <FaFileCsv />
-            {copy.loadCsv}
+            <FaFileUpload />
+            {copy.importCsv}
+          </button>
+          <button className="settings" type="button" onClick={handleExport}>
+            <FaFileDownload />
+            {copy.exportCsv}
           </button>
           <button
             className={`settings ${isTimelineRunning ? "stop" : ""}`}
@@ -1237,6 +1618,19 @@ const App = () => {
           </button>
         </div>
       )}
+      {loading && <div className="loading-banner">{copy.loading}</div>}
+      {(error || actionError) && (
+        <div className="warning-banner error-banner">
+          <div className="warning-content">{error || actionError}</div>
+          <button
+            className="warning-dismiss"
+            type="button"
+            onClick={() => setActionError("")}
+          >
+            {copy.close}
+          </button>
+        </div>
+      )}
       <div className="flow-wrapper">
         <TreeErrorBoundary
           title={copy.treeErrorTitle}
@@ -1257,6 +1651,9 @@ const App = () => {
               showWarnings={showWarnings}
               warningsToggleLabel={warningsToggleLabel}
               printLabel={copy.print}
+              dataModeLabel={dataModeLabel}
+              dataModeTooltip={dataModeTooltip}
+              dataModeIcon={dataModeIcon}
             />
           </ReactFlowProvider>
         </TreeErrorBoundary>
@@ -1406,6 +1803,257 @@ const App = () => {
                 }}
               >
                 {copy.timelinePlay}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isEditorOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <div
+            className="modal editor-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="editor-modal-title"
+            ref={editorModalRef}
+          >
+            <div className="modal-header">
+              <div>
+                <div className="modal-title" id="editor-modal-title">
+                  {editorMode === "add"
+                    ? copy.personModalAddTitle
+                    : copy.personModalEditTitle}
+                </div>
+                <div className="modal-subtitle">{copy.personModalSubtitle}</div>
+              </div>
+            </div>
+            <div className="modal-body">
+              <label className="field">
+                <span>{copy.personNameLabel}</span>
+                <input
+                  type="text"
+                  value={editorDraft.name}
+                  onChange={(event) => handleEditorNameChange(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>{copy.personIdLabel}</span>
+                <input
+                  type="text"
+                  value={editorDraft.id}
+                  disabled={editorMode === "edit"}
+                  onChange={(event) => handleEditorIdChange(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span>{copy.birthDateLabel}</span>
+                <input
+                  type="date"
+                  value={editorDraft.birth_day}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      birth_day: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field">
+                <span>{copy.deathDateLabel}</span>
+                <input
+                  type="date"
+                  value={editorDraft.death_day}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      death_day: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field">
+                <span>{copy.birthPlaceLabel}</span>
+                <input
+                  type="text"
+                  value={editorDraft.birth_place}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      birth_place: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="field">
+                <span>{copy.fatherLabel}</span>
+                <select
+                  value={editorDraft.father}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      father: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">{copy.unknown}</option>
+                  {parentOptions.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>{copy.motherLabel}</span>
+                <select
+                  value={editorDraft.mother}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      mother: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">{copy.unknown}</option>
+                  {parentOptions.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>{copy.avatarUrlLabel}</span>
+                <input
+                  type="text"
+                  value={editorDraft.avatar_url}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      avatar_url: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              {dataMode === "api" && (
+                <label className="field">
+                  <span>{copy.avatarUploadLabel}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={avatarUploading}
+                    onChange={(event) =>
+                      handleAvatarUpload(event.target.files?.[0])
+                    }
+                  />
+                </label>
+              )}
+              <label className="field">
+                <span>{copy.infoLabel}</span>
+                <textarea
+                  rows={4}
+                  value={editorDraft.info}
+                  onChange={(event) =>
+                    setEditorDraft((prev) => ({
+                      ...prev,
+                      info: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              {editorError && <div className="form-error">{editorError}</div>}
+            </div>
+            <div className="modal-footer">
+              {editorMode === "edit" && (
+                <button
+                  className="modal-delete"
+                  type="button"
+                  onClick={handleDeletePerson}
+                >
+                  <FaTrash />
+                  {copy.deletePerson}
+                </button>
+              )}
+              <button className="modal-close" type="button" onClick={closeEditor}>
+                {copy.close}
+              </button>
+              <button
+                className="modal-save"
+                type="button"
+                disabled={isSaving}
+                onClick={handleSavePerson}
+              >
+                {editorMode === "add" ? copy.editorCreate : copy.editorUpdate}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isImportOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="import-modal-title"
+            ref={importModalRef}
+          >
+            <div className="modal-header">
+              <div>
+                <div className="modal-title" id="import-modal-title">
+                  {copy.importTitle}
+                </div>
+                <div className="modal-subtitle">{copy.importSubtitle}</div>
+              </div>
+            </div>
+            <div className="modal-body">
+              <div className="field">
+                <span>{copy.importColumnsTitle}</span>
+                <ul className="import-guidance-list">
+                  {PERSON_FIELDS.map((field) => (
+                    <li key={field}>
+                      <code>{field}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="field">
+                <span>{copy.importNotesTitle}</span>
+                <ul className="import-guidance-list">
+                  <li>{copy.importNoteDate}</li>
+                  <li>{copy.importNoteBlank}</li>
+                  <li>{copy.importNoteIds}</li>
+                  <li>{copy.importNoteTemplate}</li>
+                </ul>
+              </div>
+              <label className="field">
+                <span>{copy.importCsv}</span>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                />
+              </label>
+              {importError && <div className="form-error">{importError}</div>}
+            </div>
+            <div className="modal-footer">
+              <button
+                className="modal-close"
+                type="button"
+                onClick={() => {
+                  setIsImportOpen(false);
+                  setImportError("");
+                }}
+              >
+                {copy.importCancel}
+              </button>
+              <button
+                className="modal-save"
+                type="button"
+                disabled={!importFile || isImporting}
+                onClick={handleImportSubmit}
+              >
+                {copy.importAction}
               </button>
             </div>
           </div>
