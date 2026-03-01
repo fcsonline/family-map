@@ -1939,19 +1939,21 @@ const App = () => {
                   ))}
                 </select>
               </label>
-              <label className="field">
-                <span>{copy.avatarUrlLabel}</span>
-                <input
-                  type="text"
-                  value={editorDraft.avatar_url}
-                  onChange={(event) =>
-                    setEditorDraft((prev) => ({
-                      ...prev,
-                      avatar_url: event.target.value,
-                    }))
-                  }
-                />
-              </label>
+              {dataMode !== "api" && (
+                <label className="field">
+                  <span>{copy.avatarUrlLabel}</span>
+                  <input
+                    type="text"
+                    value={editorDraft.avatar_url}
+                    onChange={(event) =>
+                      setEditorDraft((prev) => ({
+                        ...prev,
+                        avatar_url: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              )}
               {dataMode === "api" && (
                 <label className="field">
                   <span>{copy.avatarUploadLabel}</span>
