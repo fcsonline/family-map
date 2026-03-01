@@ -4,6 +4,22 @@ import { useCallback, useMemo, useState } from "react";
 const DB_NAME = "family-map";
 const STORE_NAME = "people";
 const DB_VERSION = 1;
+const baseUrl = import.meta.env.BASE_URL || "/";
+const withBasePath = (path) => {
+  if (!path) return path;
+  if (
+    /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(path) ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+  if (baseUrl === "/" || path.startsWith(baseUrl)) {
+    return path;
+  }
+  const trimmed = path.startsWith("/") ? path.slice(1) : path;
+  return `${baseUrl}${trimmed}`;
+};
 
 export const PERSON_FIELDS = [
   "id",
@@ -153,7 +169,7 @@ export const usePeopleData = () => {
         const db = await openDb();
         const stored = await getAllPeople(db);
         if (!stored.length) {
-          const response = await fetch("/people.csv");
+          const response = await fetch(withBasePath("/people.csv"));
           const text = await response.text();
           const parsed = parseCsvText(text);
           await replaceAllPeople(db, parsed);

@@ -49,6 +49,23 @@ const topPadding = 60;
 const marriageSize = 20;
 const childEdgeOffset = 24;
 
+const baseUrl = import.meta.env.BASE_URL || "/";
+const withBasePath = (path) => {
+  if (!path) return path;
+  if (
+    /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(path) ||
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
+  ) {
+    return path;
+  }
+  if (baseUrl === "/" || path.startsWith(baseUrl)) {
+    return path;
+  }
+  const trimmed = path.startsWith("/") ? path.slice(1) : path;
+  return `${baseUrl}${trimmed}`;
+};
+
 const normalizeId = (value) => (value ? value.trim() : "");
 
 const formatDate = (value, locale) => {
@@ -814,7 +831,7 @@ const PersonNode = ({ data }) => {
         className={`person-image ${isDeceased ? "deceased" : ""}`}
         style={
           person.avatar_url
-            ? { backgroundImage: `url(${person.avatar_url})` }
+            ? { backgroundImage: `url(${withBasePath(person.avatar_url)})` }
             : undefined
         }
       />
@@ -1469,7 +1486,7 @@ const App = () => {
     <div className={`app-shell ${theme}`}>
       <div className="toolbar">
         <div className="title-row">
-          <img className="title-icon" src="/favicon.png" alt="" />
+          <img className="title-icon" src={withBasePath("/favicon.png")} alt="" />
           <div className="title-stack">
             <div className="title">{copy.title}</div>
             <div className="subtitle">{copy.subtitle}</div>
@@ -2092,7 +2109,11 @@ const App = () => {
                 }`}
                 style={
                   selectedInfo.avatar_url
-                    ? { backgroundImage: `url(${selectedInfo.avatar_url})` }
+                    ? {
+                        backgroundImage: `url(${withBasePath(
+                          selectedInfo.avatar_url,
+                        )})`,
+                      }
                     : undefined
                 }
               />
