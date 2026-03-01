@@ -31,7 +31,7 @@ npm run server
 - `VITE_DATA_MODE=api` reads and writes through the REST API backed by SQLite on the server. CSV imports are uploaded to `/api/import` and exports are downloaded from `/api/export`. Use this mode when you want persistence across devices or users.
 - `VITE_API_BASE_URL` sets the API base URL (leave empty for same-origin).
 
-Note: The Vite config uses the default `VITE_` env prefix; custom prefixes are not supported here.
+Note: The Vite config uses the default `VITE_` env prefix; custom prefixes are not supported here. Build assets are emitted with relative URLs.
 
 ## CSV import/export
 
