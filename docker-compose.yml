@@ -1,7 +1,10 @@
 version: "3.9"
 services:
   family-map:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_DATA_MODE: api
     ports:
       - "8080:3001"
     environment:

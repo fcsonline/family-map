@@ -5,8 +5,9 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 ARG VITE_BASE_PATH=/
+ARG VITE_DATA_MODE=local
 ENV VITE_BASE_PATH=$VITE_BASE_PATH
-ENV DATA_MODE=api
+ENV VITE_DATA_MODE=$VITE_DATA_MODE
 RUN npm run build
 
 FROM node:22.12-alpine
