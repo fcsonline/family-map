@@ -1215,6 +1215,29 @@ const App = () => {
           setSelectedInfo(person);
         }
       }
+      if (
+        event.key.toLowerCase() === "e" &&
+        selectedId &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey
+      ) {
+        const target = event.target;
+        const isTypingTarget =
+          target instanceof HTMLElement &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT" ||
+            target.isContentEditable);
+        if (isTypingTarget) return;
+        const person = people.find((entry) => entry.id === selectedId);
+        if (!person || isEditorOpen) return;
+        setEditorMode("edit");
+        setEditorDraft(normalizePerson(person));
+        setEditorIdLocked(true);
+        setEditorError("");
+        setIsEditorOpen(true);
+      }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -1541,7 +1564,7 @@ const App = () => {
     setEditorError("");
     setAvatarUploading(true);
     try {
-      const url = await uploadAvatar(file);
+      const url = await uploadAvatar(file, editorDraft.name);
       if (url) {
         setEditorDraft((prev) => ({ ...prev, avatar_url: url }));
       }

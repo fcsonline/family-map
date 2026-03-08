@@ -189,7 +189,7 @@ app.post("/api/uploads", avatarUpload.single("file"), async (req, res) => {
       res.status(400).json({ error: "Only image uploads are supported" });
       return;
     }
-    const name = formalizeFilename(req.file.originalname);
+    const name = formalizeFilename(req.body?.name || req.file.originalname);
     const filename = `${Date.now()}-${name}.jpg`;
     const outputPath = path.join(uploadsDir, filename);
 

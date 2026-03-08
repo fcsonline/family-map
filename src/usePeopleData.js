@@ -312,10 +312,11 @@ export const usePeopleData = () => {
   }, [apiUrl, dataMode, people]);
 
   const uploadAvatar = useCallback(
-    async (file) => {
+    async (file, personName = "") => {
       if (!file || dataMode !== "api") return "";
       const form = new FormData();
       form.append("file", file);
+      form.append("name", personName);
       const response = await fetch(apiUrl("/api/uploads"), {
         method: "POST",
         body: form,
