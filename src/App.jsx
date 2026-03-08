@@ -656,20 +656,6 @@ const buildWarnings = (people, locale) => {
   const isMissingRecord = (parentId) => parentId && !peopleById.has(parentId);
 
   people.forEach((child) => {
-    if (child.father && !child.mother) {
-      const fatherName = peopleById.get(child.father)?.name || child.father;
-      addWarning(
-        child.id,
-        `${fatherName} ${copy.warningMissingParent} (${child.name}).`,
-      );
-    }
-    if (child.mother && !child.father) {
-      const motherName = peopleById.get(child.mother)?.name || child.mother;
-      addWarning(
-        child.id,
-        `${motherName} ${copy.warningMissingParent} (${child.name}).`,
-      );
-    }
     if (isMissingRecord(child.father)) {
       addWarning(child.id, `${child.name} ${copy.warningMissingParent}.`);
     }
@@ -694,6 +680,14 @@ const buildGraph = (
 ) => {
   const { peopleById, coupleById, marriageByPerson, childrenByCouple } =
     buildModel(people);
+  const highlightedChildIds = new Set();
+  if (selectedId) {
+    people.forEach((person) => {
+      if (person.father === selectedId || person.mother === selectedId) {
+        highlightedChildIds.add(person.id);
+      }
+    });
+  }
   const generationById = computeGenerations(peopleById);
   const coupleGeneration = new Map();
 
@@ -760,7 +754,8 @@ const buildGraph = (
         const x = startX + index * (personWidth + partnerGap);
         const person = peopleById.get(partnerId);
         const isSelected = selectedId === partnerId;
-        const isDimmed = selectedId && selectedId !== partnerId;
+        const isChildHighlighted = highlightedChildIds.has(partnerId);
+        const isDimmed = selectedId && selectedId !== partnerId && !isChildHighlighted;
         const node = {
           id: partnerId,
           type: "person",
@@ -768,6 +763,7 @@ const buildGraph = (
           data: {
             person,
             isSelected,
+            isChildHighlighted,
             isDimmed,
             locale,
             hasWarning: showWarnings && warningIds?.has(partnerId),
@@ -824,6 +820,8 @@ const buildGraph = (
     });
     const children = childrenByCouple.get(couple.id) || [];
     children.forEach((childId, index) => {
+      const isHighlighted =
+        selectedId && highlightedChildIds.has(childId) && couple.partners.includes(selectedId);
       const offsetIndex = index - (children.length - 1) / 2;
       const offset = offsetIndex * childEdgeOffset;
       edges.push({
@@ -832,6 +830,9 @@ const buildGraph = (
         target: childId,
         sourceHandle: "bottom",
         type: "family",
+        style: isHighlighted
+          ? { stroke: "#2563eb", strokeWidth: 3 }
+          : undefined,
         data: { offset },
       });
     });
@@ -844,6 +845,7 @@ const PersonNode = ({ data }) => {
   const {
     person,
     isSelected,
+    isChildHighlighted,
     isDimmed,
     locale,
     hasWarning,
@@ -862,6 +864,8 @@ const PersonNode = ({ data }) => {
   return (
     <div
       className={`person-card ${isSelected ? "selected" : ""} ${
+        isChildHighlighted ? "child-highlighted" : ""
+      } ${
         isDimmed ? "dimmed" : ""
       } ${hasWarning ? "warning" : ""} ${isMatch ? "match" : ""} ${
         isTimelineDimmed ? "timeline-dim" : ""

@@ -444,6 +444,11 @@
   box-shadow: inset 0 0 0 2px rgba(96, 165, 250, 0.35);
 }
 
+.app-shell.dark .person-card.child-highlighted {
+  border-color: rgba(45, 212, 191, 0.8);
+  box-shadow: inset 0 0 0 2px rgba(45, 212, 191, 0.35);
+}
+
 .app-shell.dark .person-warning {
   color: #fde047;
 }
@@ -471,6 +476,11 @@
 .person-card.selected {
   border-color: #1d4ed8;
   box-shadow: inset 0 0 0 2px #1d4ed8;
+}
+
+.person-card.child-highlighted {
+  border-color: #0f766e;
+  box-shadow: inset 0 0 0 2px rgba(15, 118, 110, 0.5);
 }
 
 .person-card.dimmed {
