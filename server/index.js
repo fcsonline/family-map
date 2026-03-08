@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import Papa from "papaparse";
 import path from "path";
+import sharp from "sharp";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import sqlite3 from "sqlite3";
@@ -89,15 +90,19 @@ const insertPerson = async (person) => {
 };
 
 const memoryUpload = multer({ storage: multer.memoryStorage() });
-const avatarUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadsDir),
-    filename: (_req, file, cb) => {
-      const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, "-");
-      cb(null, `${Date.now()}-${safeName}`);
-    },
-  }),
-});
+const avatarUpload = multer({ storage: multer.memoryStorage() });
+
+const formalizeFilename = (originalName) => {
+  const baseName = path.parse(originalName || "").name;
+  const normalized = baseName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalized || "avatar";
+};
 
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
@@ -190,7 +195,17 @@ app.post("/api/uploads", avatarUpload.single("file"), async (req, res) => {
       res.status(400).json({ error: "Image file is required" });
       return;
     }
-    res.json({ url: `/uploads/${req.file.filename}` });
+    if (!req.file.mimetype?.startsWith("image/")) {
+      res.status(400).json({ error: "Only image uploads are supported" });
+      return;
+    }
+    const name = formalizeFilename(req.file.originalname);
+    const filename = `${Date.now()}-${name}.jpg`;
+    const outputPath = path.join(uploadsDir, filename);
+
+    await sharp(req.file.buffer).rotate().jpeg({ quality: 90 }).toFile(outputPath);
+
+    res.json({ url: `/uploads/${filename}` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
