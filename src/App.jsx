@@ -883,6 +883,8 @@ const PersonNode = ({ data }) => {
 
   return (
     <div
+      tabIndex={0}
+      data-person-id={person.id}
       className={`person-card ${isSelected ? "selected" : ""} ${
         isChildHighlighted ? "child-highlighted" : ""
       } ${
@@ -1148,6 +1150,7 @@ const App = () => {
   } = usePeopleData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [pendingNodeFocusId, setPendingNodeFocusId] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [locale, setLocale] = useState("en-US");
   const [theme, setTheme] = useState("light");
@@ -1438,9 +1441,11 @@ const App = () => {
     });
   };
 
-  const handleSelect = (id) => {
+  const handleSelect = (id, options = {}) => {
+    const { focusNode = false } = options;
     setSelectedId(id);
     setSelectedInfo(null);
+    setPendingNodeFocusId(focusNode ? id : "");
   };
 
   const warningsToggleLabel = showWarnings
@@ -1601,6 +1606,33 @@ const App = () => {
     }
   };
 
+  useEffect(() => {
+    if (!pendingNodeFocusId || pendingNodeFocusId !== selectedId) return;
+
+    const focusNode = () => {
+      const cards = document.querySelectorAll(".person-card[data-person-id]");
+      for (const card of cards) {
+        if (card.dataset.personId === pendingNodeFocusId) {
+          card.focus();
+          return true;
+        }
+      }
+      return false;
+    };
+
+    if (focusNode()) {
+      setPendingNodeFocusId("");
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      focusNode();
+      setPendingNodeFocusId("");
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [pendingNodeFocusId, selectedId, nodes]);
+
   return (
     <div className={`app-shell ${theme}`}>
       <div className="toolbar">
@@ -1644,7 +1676,7 @@ const App = () => {
                 event.preventDefault();
                 const chosen = matches[activeMatchIndex] || matches[0];
                 if (chosen) {
-                  handleSelect(chosen.id);
+                  handleSelect(chosen.id, { focusNode: true });
                   setSearchTerm(chosen.name);
                   setIsSearchOpen(false);
                   setActiveMatchIndex(0);

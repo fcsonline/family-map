@@ -478,6 +478,11 @@
   box-shadow: inset 0 0 0 2px #1d4ed8;
 }
 
+.person-card:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
 .person-card.child-highlighted {
   border-color: #0f766e;
   box-shadow: inset 0 0 0 2px rgba(15, 118, 110, 0.5);
