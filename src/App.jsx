@@ -1253,6 +1253,8 @@ const App = () => {
             target.tagName === "SELECT" ||
             target.isContentEditable);
         if (isTypingTarget) return;
+        event.preventDefault();
+        event.stopPropagation();
         const person = people.find((entry) => entry.id === selectedId);
         if (!person || isEditorOpen) return;
         setEditorMode("edit");
