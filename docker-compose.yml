@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        VITE_DATA_MODE: api
+        VITE_DATA_MODE: self-hosted
     ports:
       - "8080:3001"
     environment:

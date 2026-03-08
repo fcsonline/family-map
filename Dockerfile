@@ -5,7 +5,7 @@ COPY package*.json ./
 RUN npm ci --no-audit --no-fund --loglevel=error
 COPY . .
 ARG VITE_BASE_PATH=/
-ARG VITE_DATA_MODE=local
+ARG VITE_DATA_MODE=cloud
 ENV VITE_BASE_PATH=$VITE_BASE_PATH
 ENV VITE_DATA_MODE=$VITE_DATA_MODE
 RUN npm run build

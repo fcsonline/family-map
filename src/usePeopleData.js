@@ -142,9 +142,9 @@ const buildCsvText = (people) =>
 
 export const usePeopleData = () => {
   const mode = (
-    import.meta.env.VITE_DATA_MODE || import.meta.env.DATA_MODE || "local"
+    import.meta.env.VITE_DATA_MODE || import.meta.env.DATA_MODE || "cloud"
   ).toLowerCase();
-  const dataMode = mode === "api" ? "api" : "local";
+  const dataMode = mode === "self-hosted" ? "api" : "local";
   const apiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL || "";
 
   const [people, setPeople] = useState([]);
