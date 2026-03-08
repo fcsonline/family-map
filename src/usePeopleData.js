@@ -5,10 +5,25 @@ const DB_NAME = "family-map";
 const STORE_NAME = "people";
 const DB_VERSION = 1;
 const baseUrl = import.meta.env.BASE_URL || "/";
+const absoluteUrlPattern = /^(?:[a-z][a-z0-9+.-]*:)?\/\//i;
+const normalizePathSegment = (value) => value.replace(/^\/+|\/+$/g, "");
+const basePathPrefix =
+  baseUrl === "/" ? "" : `/${normalizePathSegment(baseUrl)}`;
+
+const resolveApiBase = (value) => {
+  if (!value) return basePathPrefix;
+  if (absoluteUrlPattern.test(value)) {
+    return value.replace(/\/+$/g, "");
+  }
+  const normalized = normalizePathSegment(value);
+  if (!normalized) return basePathPrefix;
+  return `${basePathPrefix}/${normalized}`;
+};
+
 const withBasePath = (path) => {
   if (!path) return path;
   if (
-    /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(path) ||
+    absoluteUrlPattern.test(path) ||
     path.startsWith("data:") ||
     path.startsWith("blob:")
   ) {
@@ -145,7 +160,9 @@ export const usePeopleData = () => {
     import.meta.env.VITE_DATA_MODE || import.meta.env.DATA_MODE || "cloud"
   ).toLowerCase();
   const dataMode = mode === "self-hosted" ? "api" : "local";
-  const apiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL || "";
+  const apiBase = resolveApiBase(
+    import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL || "",
+  );
 
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);

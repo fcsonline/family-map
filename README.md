@@ -29,7 +29,7 @@ npm run server
 
 - `VITE_DATA_MODE=cloud` (default) keeps all people data in your browser using IndexedDB. CSV imports update the local database and exports are generated in the browser. Use this mode for a fully offline, single-user experience.
 - `VITE_DATA_MODE=self-hosted` reads and writes through the REST API backed by SQLite on the server. CSV imports are uploaded to `/api/import` and exports are downloaded from `/api/export`. Use this mode when you want persistence across devices or users.
-- `VITE_API_BASE_URL` sets the API base URL (leave empty for same-origin).
+- `VITE_API_BASE_URL` sets the API base URL prefix. It is joined with `VITE_BASE_PATH` for relative paths; leave empty to use same-origin under the app base path.
 - `VITE_BASE_PATH` sets the build base path when serving the app from a subpath (example: `/family-map/`). Use `relative` to emit relative asset URLs.
 
 Note: The Vite config uses the default `VITE_` env prefix; custom prefixes are not supported here.
