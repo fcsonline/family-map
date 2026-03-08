@@ -45,6 +45,7 @@ npm run server
 
 - `VITE_API_BASE_URL` sets the API base URL prefix. It is joined with `VITE_BASE_PATH` for relative paths; leave empty to use same-origin under the app base path.
 - `VITE_BASE_PATH` sets the build base path when serving the app from a subpath (example: `/family-map/`). Use `relative` to emit relative asset URLs.
+- `VITE_GIT_COMMIT` sets the commit shown in the Data modes dialog; if omitted, Vite tries `git rev-parse HEAD` and falls back to `unknown`.
 
 Note: The Vite config uses the default `VITE_` env prefix; custom prefixes are not supported here.
 
@@ -58,7 +59,9 @@ Note: The Vite config uses the default `VITE_` env prefix; custom prefixes are n
 Build the image:
 
 ```bash
-docker build -t family-map .
+docker build \
+  --build-arg VITE_GIT_COMMIT=$(git rev-parse HEAD) \
+  -t family-map .
 ```
 
 Run the container:
@@ -74,7 +77,7 @@ Open `http://localhost:8080` in your browser.
 Use the included `docker-compose.yml` to run the API + UI with a persisted volume:
 
 ```bash
-docker compose up --build
+VITE_GIT_COMMIT=$(git rev-parse HEAD) docker compose up --build
 ```
 
 The `family-map-data` volume stores `/data/family-map.db` and `/data/uploads`.

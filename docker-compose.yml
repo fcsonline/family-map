@@ -4,6 +4,7 @@ services:
       context: .
       args:
         VITE_DATA_MODE: self-hosted
+        VITE_GIT_COMMIT: ${VITE_GIT_COMMIT:-unknown}
     ports:
       - "8080:3001"
     environment:

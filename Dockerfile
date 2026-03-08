@@ -6,8 +6,10 @@ RUN npm ci --no-audit --no-fund --loglevel=error
 COPY . .
 ARG VITE_BASE_PATH=/
 ARG VITE_DATA_MODE=cloud
+ARG VITE_GIT_COMMIT=unknown
 ENV VITE_BASE_PATH=$VITE_BASE_PATH
 ENV VITE_DATA_MODE=$VITE_DATA_MODE
+ENV VITE_GIT_COMMIT=$VITE_GIT_COMMIT
 RUN npm run build
 
 FROM node:22.12-alpine

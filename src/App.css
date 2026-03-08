@@ -810,6 +810,36 @@
   text-decoration: underline;
 }
 
+.mode-build-meta {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.mode-build-label {
+  font-weight: 700;
+}
+
+.mode-build-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mode-build-link:hover {
+  text-decoration: underline;
+}
+
+.mode-build-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 .info-meta {
   display: flex;
   flex-direction: column;
@@ -887,6 +917,14 @@
 }
 
 .app-shell.dark .mode-docs-link {
+  color: #93c5fd;
+}
+
+.app-shell.dark .mode-build-meta {
+  color: #cbd5e1;
+}
+
+.app-shell.dark .mode-build-link {
   color: #93c5fd;
 }
 

@@ -51,6 +51,14 @@ const marriageSize = 20;
 const childEdgeOffset = 24;
 
 const baseUrl = import.meta.env.BASE_URL || "/";
+const appCommitSha =
+  typeof __APP_COMMIT_SHA__ === "string" && __APP_COMMIT_SHA__
+    ? __APP_COMMIT_SHA__
+    : "unknown";
+const appRepoUrl =
+  typeof __APP_REPO_URL__ === "string" && __APP_REPO_URL__
+    ? __APP_REPO_URL__
+    : "https://github.com/fcsonline/family-map";
 const withBasePath = (path) => {
   if (!path) return path;
   if (
@@ -245,6 +253,9 @@ const translations = {
     modeInfoCloudStorage: "IndexedDB in your local browser storage.",
     modeInfoCloudSync: "No automatic sync across devices.",
     modeInfoDocs: "Read full docs",
+    modeInfoBuild: "Build",
+    modeInfoRepo: "GitHub repository",
+    modeInfoUnknownCommit: "unknown",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -344,6 +355,9 @@ const translations = {
     modeInfoCloudStorage: "IndexedDB en el almacenamiento local del navegador.",
     modeInfoCloudSync: "Sin sincronización automática entre dispositivos.",
     modeInfoDocs: "Leer documentación",
+    modeInfoBuild: "Build",
+    modeInfoRepo: "Repositorio de GitHub",
+    modeInfoUnknownCommit: "desconocido",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -443,6 +457,9 @@ const translations = {
     modeInfoCloudStorage: "IndexedDB a l'emmagatzematge local del navegador.",
     modeInfoCloudSync: "Sense sincronització automàtica entre dispositius.",
     modeInfoDocs: "Llegir documentació",
+    modeInfoBuild: "Build",
+    modeInfoRepo: "Repositori de GitHub",
+    modeInfoUnknownCommit: "desconegut",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -542,6 +559,9 @@ const translations = {
     modeInfoCloudStorage: "IndexedDB no armazenamento local do navegador.",
     modeInfoCloudSync: "Sem sincronização automática entre dispositivos.",
     modeInfoDocs: "Ler documentação",
+    modeInfoBuild: "Build",
+    modeInfoRepo: "Repositório do GitHub",
+    modeInfoUnknownCommit: "desconhecido",
   },
 };
 
@@ -1431,6 +1451,12 @@ const App = () => {
   const dataModeTooltip =
     dataMode === "api" ? copy.dataModeApiTooltip : copy.dataModeLocalTooltip;
   const dataModeIcon = dataMode === "api" ? <FaHome /> : <FaCloud />;
+  const normalizedRepoUrl = appRepoUrl.replace(/\/+$/g, "");
+  const isKnownCommit = appCommitSha && appCommitSha !== "unknown";
+  const commitLabel = isKnownCommit
+    ? appCommitSha.slice(0, 7)
+    : copy.modeInfoUnknownCommit;
+  const commitUrl = isKnownCommit ? `${normalizedRepoUrl}/commit/${appCommitSha}` : "";
 
   const sortedPeople = useMemo(
     () => [...people].sort((left, right) => left.name.localeCompare(right.name)),
@@ -1829,11 +1855,36 @@ const App = () => {
               </div>
               <a
                 className="mode-docs-link"
-                href="https://github.com/fcsonline/family-map#data-modes"
+                href={`${normalizedRepoUrl}#data-modes`}
                 target="_blank"
                 rel="noreferrer"
               >
                 {copy.modeInfoDocs}
+                <FaExternalLinkAlt />
+              </a>
+              <div className="mode-build-meta">
+                <span className="mode-build-label">{copy.modeInfoBuild}</span>
+                {isKnownCommit ? (
+                  <a
+                    className="mode-build-link"
+                    href={commitUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {commitLabel}
+                    <FaExternalLinkAlt />
+                  </a>
+                ) : (
+                  <span className="mode-build-value">{commitLabel}</span>
+                )}
+              </div>
+              <a
+                className="mode-docs-link"
+                href={normalizedRepoUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {copy.modeInfoRepo}
                 <FaExternalLinkAlt />
               </a>
             </div>
