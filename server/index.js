@@ -6,7 +6,7 @@ import path from "path";
 import sharp from "sharp";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
-import sqlite3 from "sqlite3";
+import Database from "better-sqlite3";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +17,7 @@ const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const uploadsDir = path.join(dataDir, "uploads");
 const dbPath = path.join(dataDir, "family-map.db");
 const distDir = path.join(__dirname, "..", "dist");
+let db;
 
 const personFields = [
   "id",
@@ -34,21 +35,10 @@ const ensureDir = async () => {
   await fs.mkdir(uploadsDir, { recursive: true });
 };
 
-const db = new sqlite3.Database(dbPath);
 const run = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.run(sql, params, function (error) {
-      if (error) reject(error);
-      else resolve(this);
-    });
-  });
+  Promise.resolve(db.prepare(sql).run(...params));
 const all = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.all(sql, params, (error, rows) => {
-      if (error) reject(error);
-      else resolve(rows);
-    });
-  });
+  Promise.resolve(db.prepare(sql).all(...params));
 
 const normalizeId = (value) => (value ? value.trim() : "");
 const normalizePerson = (row) => ({
@@ -221,6 +211,7 @@ app.get("*", (req, res, next) => {
 
 const start = async () => {
   await ensureDir();
+  db = new Database(dbPath);
   await initDb();
   app.listen(PORT, () => {
     console.log(`Geo Family API listening on ${PORT}`);

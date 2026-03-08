@@ -722,6 +722,84 @@
   width: 800px;
 }
 
+.mode-info-modal {
+  width: min(760px, 94vw);
+}
+
+.mode-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mode-card {
+  border: 1px solid #dbe3f3;
+  border-radius: 14px;
+  padding: 12px;
+  background: #f8faff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-card.is-active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+  background: #eff6ff;
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mode-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1d2846;
+}
+
+.mode-card-badge {
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.mode-card-line {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.mode-card-line strong {
+  color: #0f172a;
+}
+
+.mode-docs-link {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-self: flex-start;
+  gap: 8px;
+  margin-top: 2px;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mode-docs-link:hover {
+  text-decoration: underline;
+}
+
 .info-meta {
   display: flex;
   flex-direction: column;
@@ -773,6 +851,33 @@
 
 .app-shell.dark .info-meta {
   color: #94a3b8;
+}
+
+.app-shell.dark .mode-card {
+  border-color: #334155;
+  background: #111827;
+}
+
+.app-shell.dark .mode-card.is-active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  background: #0f1c33;
+}
+
+.app-shell.dark .mode-card-title {
+  color: #e2e8f0;
+}
+
+.app-shell.dark .mode-card-line {
+  color: #cbd5e1;
+}
+
+.app-shell.dark .mode-card-line strong {
+  color: #e2e8f0;
+}
+
+.app-shell.dark .mode-docs-link {
+  color: #93c5fd;
 }
 
 .field {
@@ -835,5 +940,11 @@
   .react-flow__edges path {
     stroke: #1f2937 !important;
     stroke-width: 2 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .mode-info-grid {
+    grid-template-columns: 1fr;
   }
 }

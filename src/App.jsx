@@ -13,7 +13,9 @@ import ReactFlow, {
 import {
   FaBirthdayCake,
   FaClock,
+  FaCloud,
   FaCog,
+  FaExternalLinkAlt,
   FaExclamationTriangle,
   FaFileDownload,
   FaFileUpload,
@@ -24,7 +26,6 @@ import {
   FaPen,
   FaPrint,
   FaRegHeart,
-  FaServer,
   FaSkull,
   FaTrash,
   FaUserPlus,
@@ -217,8 +218,8 @@ const translations = {
     importAction: "Import",
     importCancel: "Cancel",
     dataModeLabel: "Mode",
-    dataModeLocal: "Local",
-    dataModeApi: "API",
+    dataModeLocal: "Cloud",
+    dataModeApi: "Self-hosted",
     uploadAvatar: "Upload",
     editorCreate: "Create",
     editorUpdate: "Update",
@@ -229,8 +230,21 @@ const translations = {
     importError: "Unable to import the CSV.",
     exportError: "Unable to export the CSV.",
     deleteConfirm: "Delete this person?",
-    dataModeLocalTooltip: "Local mode saves to this browser via IndexedDB.",
-    dataModeApiTooltip: "API mode syncs with the server and SQLite database.",
+    dataModeLocalTooltip: "Cloud mode saves to this browser via IndexedDB.",
+    dataModeApiTooltip: "Self-hosted mode syncs with the server and SQLite database.",
+    modeInfoTitle: "Data modes",
+    modeInfoSubtitle: "Pick the storage model that fits your privacy and sync needs.",
+    modeInfoCurrent: "Current mode",
+    modeInfoPrivacy: "Privacy",
+    modeInfoStorage: "Storage",
+    modeInfoSync: "Sync",
+    modeInfoSelfHostedPrivacy: "Data stays in your own server and network.",
+    modeInfoSelfHostedStorage: "SQLite + uploads folder on your host.",
+    modeInfoSelfHostedSync: "Shared across devices using this deployment.",
+    modeInfoCloudPrivacy: "Data stays in this browser profile.",
+    modeInfoCloudStorage: "IndexedDB in your local browser storage.",
+    modeInfoCloudSync: "No automatic sync across devices.",
+    modeInfoDocs: "Read full docs",
   },
   "es-ES": {
     title: "Árbol familiar",
@@ -303,8 +317,8 @@ const translations = {
     importAction: "Importar",
     importCancel: "Cancelar",
     dataModeLabel: "Modo",
-    dataModeLocal: "Local",
-    dataModeApi: "API",
+    dataModeLocal: "Cloud",
+    dataModeApi: "Self-hosted",
     uploadAvatar: "Subir",
     editorCreate: "Crear",
     editorUpdate: "Actualizar",
@@ -315,8 +329,21 @@ const translations = {
     importError: "No se pudo importar el CSV.",
     exportError: "No se pudo exportar el CSV.",
     deleteConfirm: "¿Eliminar esta persona?",
-    dataModeLocalTooltip: "El modo local guarda en este navegador con IndexedDB.",
-    dataModeApiTooltip: "El modo API sincroniza con el servidor y SQLite.",
+    dataModeLocalTooltip: "El modo Cloud guarda en este navegador con IndexedDB.",
+    dataModeApiTooltip: "El modo Self-hosted sincroniza con el servidor y SQLite.",
+    modeInfoTitle: "Modos de datos",
+    modeInfoSubtitle: "Elige el modelo de almacenamiento que mejor encaje en privacidad y sincronización.",
+    modeInfoCurrent: "Modo actual",
+    modeInfoPrivacy: "Privacidad",
+    modeInfoStorage: "Almacenamiento",
+    modeInfoSync: "Sincronización",
+    modeInfoSelfHostedPrivacy: "Los datos quedan en tu propio servidor y red.",
+    modeInfoSelfHostedStorage: "SQLite + carpeta de uploads en tu host.",
+    modeInfoSelfHostedSync: "Compartido entre dispositivos en este despliegue.",
+    modeInfoCloudPrivacy: "Los datos quedan en este perfil del navegador.",
+    modeInfoCloudStorage: "IndexedDB en el almacenamiento local del navegador.",
+    modeInfoCloudSync: "Sin sincronización automática entre dispositivos.",
+    modeInfoDocs: "Leer documentación",
   },
   "ca-ES": {
     title: "Arbre familiar",
@@ -389,8 +416,8 @@ const translations = {
     importAction: "Importa",
     importCancel: "Cancel·la",
     dataModeLabel: "Mode",
-    dataModeLocal: "Local",
-    dataModeApi: "API",
+    dataModeLocal: "Cloud",
+    dataModeApi: "Self-hosted",
     uploadAvatar: "Puja",
     editorCreate: "Crea",
     editorUpdate: "Actualitza",
@@ -401,8 +428,21 @@ const translations = {
     importError: "No s'ha pogut importar el CSV.",
     exportError: "No s'ha pogut exportar el CSV.",
     deleteConfirm: "Vols eliminar aquesta persona?",
-    dataModeLocalTooltip: "El mode local desa en aquest navegador amb IndexedDB.",
-    dataModeApiTooltip: "El mode API sincronitza amb el servidor i SQLite.",
+    dataModeLocalTooltip: "El mode Cloud desa en aquest navegador amb IndexedDB.",
+    dataModeApiTooltip: "El mode Self-hosted sincronitza amb el servidor i SQLite.",
+    modeInfoTitle: "Modes de dades",
+    modeInfoSubtitle: "Tria el model d'emmagatzematge que millor encaixi en privacitat i sincronització.",
+    modeInfoCurrent: "Mode actual",
+    modeInfoPrivacy: "Privacitat",
+    modeInfoStorage: "Emmagatzematge",
+    modeInfoSync: "Sincronització",
+    modeInfoSelfHostedPrivacy: "Les dades queden al teu propi servidor i xarxa.",
+    modeInfoSelfHostedStorage: "SQLite + carpeta d'uploads al teu host.",
+    modeInfoSelfHostedSync: "Compartit entre dispositius en aquest desplegament.",
+    modeInfoCloudPrivacy: "Les dades queden en aquest perfil del navegador.",
+    modeInfoCloudStorage: "IndexedDB a l'emmagatzematge local del navegador.",
+    modeInfoCloudSync: "Sense sincronització automàtica entre dispositius.",
+    modeInfoDocs: "Llegir documentació",
   },
   "pt-BR": {
     title: "Árvore genealógica",
@@ -475,8 +515,8 @@ const translations = {
     importAction: "Importar",
     importCancel: "Cancelar",
     dataModeLabel: "Modo",
-    dataModeLocal: "Local",
-    dataModeApi: "API",
+    dataModeLocal: "Cloud",
+    dataModeApi: "Self-hosted",
     uploadAvatar: "Enviar",
     editorCreate: "Criar",
     editorUpdate: "Atualizar",
@@ -487,8 +527,21 @@ const translations = {
     importError: "Não foi possível importar o CSV.",
     exportError: "Não foi possível exportar o CSV.",
     deleteConfirm: "Excluir esta pessoa?",
-    dataModeLocalTooltip: "O modo local salva neste navegador com IndexedDB.",
-    dataModeApiTooltip: "O modo API sincroniza com o servidor e SQLite.",
+    dataModeLocalTooltip: "O modo Cloud salva neste navegador com IndexedDB.",
+    dataModeApiTooltip: "O modo Self-hosted sincroniza com o servidor e SQLite.",
+    modeInfoTitle: "Modos de dados",
+    modeInfoSubtitle: "Escolha o modelo de armazenamento ideal para privacidade e sincronização.",
+    modeInfoCurrent: "Modo atual",
+    modeInfoPrivacy: "Privacidade",
+    modeInfoStorage: "Armazenamento",
+    modeInfoSync: "Sincronização",
+    modeInfoSelfHostedPrivacy: "Os dados ficam no seu próprio servidor e rede.",
+    modeInfoSelfHostedStorage: "SQLite + pasta de uploads no seu host.",
+    modeInfoSelfHostedSync: "Compartilhado entre dispositivos neste deploy.",
+    modeInfoCloudPrivacy: "Os dados ficam neste perfil do navegador.",
+    modeInfoCloudStorage: "IndexedDB no armazenamento local do navegador.",
+    modeInfoCloudSync: "Sem sincronização automática entre dispositivos.",
+    modeInfoDocs: "Ler documentação",
   },
 };
 
@@ -977,6 +1030,7 @@ const FlowCanvas = ({
   dataModeLabel,
   dataModeTooltip,
   dataModeIcon,
+  onOpenModeInfo,
 }) => {
   const { fitView, setCenter } = useReactFlow();
   const nodeTypes = useMemo(
@@ -1043,7 +1097,7 @@ const FlowCanvas = ({
           <FaPrint />
         </ControlButton>
         <ControlButton
-          onClick={() => {}}
+          onClick={onOpenModeInfo}
           title={dataModeTooltip}
           aria-label={`${dataModeLabel}. ${dataModeTooltip}`}
         >
@@ -1095,6 +1149,7 @@ const App = () => {
   const [actionError, setActionError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isModeInfoOpen, setIsModeInfoOpen] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [importError, setImportError] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -1107,12 +1162,14 @@ const App = () => {
   const infoModalRef = useRef(null);
   const editorModalRef = useRef(null);
   const importModalRef = useRef(null);
+  const modeInfoModalRef = useRef(null);
 
   useModalFocusTrap(isSettingsOpen, settingsModalRef);
   useModalFocusTrap(isTimelineOpen, timelineModalRef);
   useModalFocusTrap(Boolean(selectedInfo), infoModalRef);
   useModalFocusTrap(isEditorOpen, editorModalRef);
   useModalFocusTrap(isImportOpen, importModalRef);
+  useModalFocusTrap(isModeInfoOpen, modeInfoModalRef);
 
 
   useEffect(() => {
@@ -1122,12 +1179,20 @@ const App = () => {
   useEffect(() => {
     const handleKey = (event) => {
       if (event.key === "Escape") {
-        if (isSettingsOpen || isTimelineOpen || selectedInfo || isEditorOpen || isImportOpen) {
+        if (
+          isSettingsOpen ||
+          isTimelineOpen ||
+          selectedInfo ||
+          isEditorOpen ||
+          isImportOpen ||
+          isModeInfoOpen
+        ) {
           setIsSettingsOpen(false);
           setIsTimelineOpen(false);
           setSelectedInfo(null);
           setIsEditorOpen(false);
           setIsImportOpen(false);
+          setIsModeInfoOpen(false);
           return;
         }
         setSelectedId("");
@@ -1157,6 +1222,7 @@ const App = () => {
     isTimelineOpen,
     isEditorOpen,
     isImportOpen,
+    isModeInfoOpen,
   ]);
 
   useEffect(() => {
@@ -1337,7 +1403,7 @@ const App = () => {
     dataMode === "api" ? copy.dataModeApi : copy.dataModeLocal;
   const dataModeTooltip =
     dataMode === "api" ? copy.dataModeApiTooltip : copy.dataModeLocalTooltip;
-  const dataModeIcon = dataMode === "api" ? <FaServer /> : <FaHome />;
+  const dataModeIcon = dataMode === "api" ? <FaHome /> : <FaCloud />;
 
   const sortedPeople = useMemo(
     () => [...people].sort((left, right) => left.name.localeCompare(right.name)),
@@ -1671,10 +1737,87 @@ const App = () => {
               dataModeLabel={dataModeLabel}
               dataModeTooltip={dataModeTooltip}
               dataModeIcon={dataModeIcon}
+              onOpenModeInfo={() => setIsModeInfoOpen(true)}
             />
           </ReactFlowProvider>
         </TreeErrorBoundary>
       </div>
+      {isModeInfoOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <div
+            className="modal mode-info-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mode-info-modal-title"
+            ref={modeInfoModalRef}
+          >
+            <div className="modal-header">
+              <div>
+                <div className="modal-title" id="mode-info-modal-title">
+                  {copy.modeInfoTitle}
+                </div>
+                <div className="modal-subtitle">{copy.modeInfoSubtitle}</div>
+              </div>
+            </div>
+            <div className="modal-body mode-info-grid">
+              <div className={`mode-card ${dataMode === "api" ? "is-active" : ""}`}>
+                <div className="mode-card-header">
+                  <div className="mode-card-title">
+                    <FaHome />
+                    {copy.dataModeApi}
+                  </div>
+                  {dataMode === "api" && (
+                    <span className="mode-card-badge">{copy.modeInfoCurrent}</span>
+                  )}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoPrivacy}:</strong> {copy.modeInfoSelfHostedPrivacy}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoStorage}:</strong> {copy.modeInfoSelfHostedStorage}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoSync}:</strong> {copy.modeInfoSelfHostedSync}
+                </div>
+              </div>
+              <div className={`mode-card ${dataMode === "local" ? "is-active" : ""}`}>
+                <div className="mode-card-header">
+                  <div className="mode-card-title">
+                    <FaCloud />
+                    {copy.dataModeLocal}
+                  </div>
+                  {dataMode === "local" && (
+                    <span className="mode-card-badge">{copy.modeInfoCurrent}</span>
+                  )}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoPrivacy}:</strong> {copy.modeInfoCloudPrivacy}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoStorage}:</strong> {copy.modeInfoCloudStorage}
+                </div>
+                <div className="mode-card-line">
+                  <strong>{copy.modeInfoSync}:</strong> {copy.modeInfoCloudSync}
+                </div>
+              </div>
+              <a
+                className="mode-docs-link"
+                href="https://github.com/fcsonline/family-map#data-modes"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {copy.modeInfoDocs}
+                <FaExternalLinkAlt />
+              </a>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-close" type="button" onClick={() => setIsModeInfoOpen(false)}>
+                {copy.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {timelineYear !== null && (
         <div className="timeline-toast" role="status" aria-live="polite" aria-atomic="true">
           {timelineYear}
